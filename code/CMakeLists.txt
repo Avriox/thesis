@@ -17,7 +17,8 @@ add_executable(code main.cpp
         onion_monte_carlo.h
         monte_carlo.h
         onion.h
-        timer.h)
+        timer.h
+        onion_fixed.h)
 
 target_include_directories(code PRIVATE ${ARMADILLO_INCLUDE_DIRS})
 
