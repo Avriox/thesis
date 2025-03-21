@@ -38,9 +38,9 @@ namespace onion_fixed {
     // Function to calculate double factorial
     double double_factorial(int n) {
         if (n < -1) {
-            return 0.0; // Or handle as error, double factorial is not defined for negative odd integers
+            return 0.0; 
         }
-        if (n <= 0) { // Corrected: double_factorial(-1) = 1 and double_factorial(0) = 1 for moment formula consistency
+        if (n <= 0) { 
             return 1.0;
         }
         double res = 1.0;
@@ -88,6 +88,13 @@ namespace onion_fixed {
     }
 
     double get_expected_value(mat mean_vector, mat covariance_matrix, int r) {
+        double expexted_value = 0;
+
+        // Start with the first (unconditional) value
+        expexted_value = univariate_normal_moment_2r(mean_vector(0, 0), covariance_matrix(0, 0), r);
+        
+
+        
         int k = mean_vector.n_elem;
 
         double cond_mean;
