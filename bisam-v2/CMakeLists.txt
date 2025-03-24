@@ -14,7 +14,8 @@ message(STATUS "Armadillo includes: ${ARMADILLO_INCLUDE_DIRS}")
 message(STATUS "Armadillo libs: ${ARMADILLO_LIBRARIES}")
 
 add_executable(bisam_v2 main.cpp
-        controlled-simulation.h)
+        controlled-simulation.h
+        mombf-bridge.h)
 
 target_include_directories(bisam_v2 PRIVATE ${ARMADILLO_INCLUDE_DIRS})
 
