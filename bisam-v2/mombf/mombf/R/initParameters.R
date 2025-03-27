@@ -54,6 +54,7 @@ initParameters <- function(y, x, family, initpar) {
 getthinit = function(y, x, family, initpar, enumerate) {
   if ((!missing(initpar)) && is.numeric(initpar)) {
       thinit= as.double(initpar)
+      usethinit= as.integer(1) # Added by Lucas D. KONRAD
       if (length(thinit) != ncol(x)) stop(paste("x has",ncol(x),"columns but initpar has",length(thinit),"elements"))
   } else {
       if ((!missing(initpar)) && (initpar=='none')) {

@@ -39,3 +39,5 @@ CMakeFiles
 Makefile
 cmake_install.cmake
 .Rproj.user
+.RData
+.Rhistory

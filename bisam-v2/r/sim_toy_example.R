@@ -4,11 +4,20 @@
 # library(devtools)
 # install_github("Avriox/BISAM", force = T)
 rm(list = ls())
-# library(BISAM)
 
-setwd("~/uni/wu/sis_project")
+# if (!require("BiocManager", quietly = TRUE))
+#  install.packages("BiocManager")
+# BiocManager::install("sparseMatrixStats")
+
+#remove.packages("mombf")
+#install.packages("mombf")
+#devtools::install("../mombf/mombf")
+#install.packages("../mombf/mombf", repos = NULL, type = "source")
+
+# setwd("~/uni/wu/sis_project")
 
 source("./contr_sim_breaks_fun.R")
+
 # source("./non_local_ism_fun.R")
 
 set.seed(192837612)
@@ -97,6 +106,7 @@ library(glmnet)
 # require(Rcpp)
 # require(RcppArmadillo)
 # sourceCpp("./00_code/03_ssvs_project/01_code/working/sis_proj_JKB.cpp")
+
 
 start_time <- Sys.time()
 
@@ -199,7 +209,7 @@ colnames(w_store)<-colnames(Z)
 pb <- txtProgressBar(min = 0, max = Ndraw, style = 3)
 
 #$$$$$$$$$$$$$$$$$$$$$ START LOOP $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-for(i in (1-Nburn):Nstore){
+# for(i in (1-Nburn):Nstore){
   i = (1-Nburn)
   
   #================ Geweke Test =================.====
@@ -249,11 +259,45 @@ for(i in (1-Nburn):Nstore){
   y_hat <- y-X%*%b_i
   
   nn <- 2
-  if (i==1){
+  if (i==1-Nburn){
     initpar = "auto"
   }else {
     initpar = g_i
   }
+  
+  
+  y = y_hat;
+  x = Z;
+  groups=1:ncol(x);
+  nknots=9;
+  center = FALSE;
+  scale = FALSE;
+  enumerate = FALSE;
+  includevars=rep(FALSE,ncol(x));
+  niter = nn;
+  thinning=1;
+  burnin = nn-1;
+  family = "normal";
+  priorCoef = imomprior(tau = tau);
+  priorDelta = modelbinomprior(0.50);
+  phi = s2_i;
+  deltaini = as.logical(w_i);
+  initSearch = 'none';
+  method = 'ALA';
+  hess = "asymp";
+  initpar = 'auto';#g_i; # fixed in initParameters.R function getthinit
+  #begin for debugging
+  adj.overdisp='intercept';
+  optimMethod="auto";
+  optim_maxit=10;
+  B=10^5;
+  priorVar=igprior(.01,.01);
+  priorSkew=momprior(tau=0.348);
+  #end for debugging
+  XtXprecomp = TRUE;
+  verbose = FALSE;
+  
+  
   w_i_mod <- modelSelection( # in modelSelection.R -> General model selection routines
     y = y_hat,
     x = Z,
@@ -377,7 +421,7 @@ for(i in (1-Nburn):Nstore){
     s2_store[i,]<-s2_i
   }
   setTxtProgressBar(pb, (i + Nburn))
-}
+# }
 timer <- Sys.time() - start_time
 close(pb)
 cat("Finished after ", format(round(timer, 2)), ".\n", sep = "")

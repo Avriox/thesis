@@ -1,6 +1,7 @@
 #include <iostream>
 #include <armadillo>
 #include "controlled-simulation.h"
+#include "mombf-bridge.h"
 
 #define DEBUG_PRINTING // Print some additional debug info. Comment to disable. 
 
@@ -58,7 +59,19 @@ int main() {
 
     // Use the above settings to generate random data
     SimulationOutput sim_result = contr_sim_breaks(
-        n_sim, t_sim, nx, iis, sis, pos_outl, pos_step, const_val, ife, tfe, outl_mean, step_mean, error_sd
+        n_sim,
+        t_sim,
+        nx,
+        iis,
+        sis,
+        pos_outl,
+        pos_step,
+        const_val,
+        ife,
+        tfe,
+        outl_mean,
+        step_mean,
+        error_sd
     );
 
     /* ------------------- GEWEKE Tests not implemented yet! -------------------- */
@@ -95,7 +108,7 @@ int main() {
     // Our X matrix should have cols(data) - length(excluded_cols) columns
     int num_include_cols = data.n_cols - exclude_cols.n_elem;
 
-    // Pre allocate the Matrix 
+    // Pre allocate the Matrix
     arma::mat X_(data.n_rows, num_include_cols);
 
     // Helper to keep track of the current insertion index into X
@@ -406,10 +419,36 @@ int main() {
 
         /* ---------------------------- Model Selection ----------------------------- */
 
-        int nn              = 2;
-        std::string initpar = g_i;
+        int nn = 2;
         if (iter == 1) {
         }
+
+
+        MombfBridge::modelSelection(
+            y_hat /* y */,
+            Z /* x */,
+            false /* center */,
+            false /* scale */,
+            false /* enumerate */,
+            nn /* niter */,
+            nn - 1 /* burnin */,
+            "normal" /* family */,
+            imomprior(tau) /* priorCoef */,
+            modelbbprior(1, 1) /* priorDelta */,
+            s2_i /* phi */,
+            static_cast<bool>(w_i) /* deltaini */,
+            "none" /* initSearch */,
+            "ALA" /* method */,
+            "asymp" /* hess */,
+            initpar /* initpar */,
+            "intercept" /* adj.overdisp */,
+            "auto" /* optimMethod */,
+            100000 /* B */,
+            igprior(0.01, 0.01) /* priorVar */,
+            true /* XtXprecomp */,
+            false /* verbose */
+        );
+
 
         arma::vec w_i_mod_postSample(r);
         if (iter == 1 - Nburn) {
