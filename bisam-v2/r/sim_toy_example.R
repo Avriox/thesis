@@ -7,7 +7,7 @@ rm(list = ls())
 
 # if (!require("BiocManager", quietly = TRUE))
 #  install.packages("BiocManager")
-# BiocManager::install("sparseMatrixStats")
+# BiocManager::install("sparseMatrixStats", force = TRUE)
 
 #remove.packages("mombf")
 #install.packages("mombf")

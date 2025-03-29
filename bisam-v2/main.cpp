@@ -420,33 +420,30 @@ int main() {
         /* ---------------------------- Model Selection ----------------------------- */
 
         int nn = 2;
-        if (iter == 1) {
+
+        arma::vec thinit;
+        MombfBridge::InitparType initpar_type;
+        if (iter == 1 - Nburn) {
+            initpar_type = MombfBridge::Auto;
+        } else {
+            thinit = g_i;
         }
 
-
-        MombfBridge::modelSelection(
-            y_hat /* y */,
-            Z /* x */,
-            false /* center */,
-            false /* scale */,
-            false /* enumerate */,
-            nn /* niter */,
-            nn - 1 /* burnin */,
-            "normal" /* family */,
-            imomprior(tau) /* priorCoef */,
-            modelbbprior(1, 1) /* priorDelta */,
-            s2_i /* phi */,
-            static_cast<bool>(w_i) /* deltaini */,
-            "none" /* initSearch */,
-            "ALA" /* method */,
-            "asymp" /* hess */,
-            initpar /* initpar */,
-            "intercept" /* adj.overdisp */,
-            "auto" /* optimMethod */,
-            100000 /* B */,
-            igprior(0.01, 0.01) /* priorVar */,
-            true /* XtXprecomp */,
-            false /* verbose */
+        MombfBridge::modelSelection(y_hat,
+                                    Z,
+                                    nn,
+                                    1,
+                                    nn - 1,
+                                    w_i,
+                                    false,
+                                    false,
+                                    true,
+                                    s2_i,
+                                    tau,
+                                    0.348,
+                                    0.5,
+                                    thinit,
+                                    initpar_type
         );
 
 

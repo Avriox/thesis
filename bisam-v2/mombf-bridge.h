@@ -5,9 +5,19 @@
 #ifndef MOMBF_BRIDGE_H
 #define MOMBF_BRIDGE_H
 
+#include <complex.h>
+#include "lib/lasso/LassoRegression.h"
+
 #include "mombf/mombf/src/modelSel_regression.h"
 
 namespace MombfBridge {
+    /* -------------------------------------------------------------------------- */
+    /*                           ModelSelectionGibbsCI                            */
+    /* -------------------------------------------------------------------------- */
+    // The following code is a modified version of the original modelSelectionGibbsCI. The original function
+    // prepares the R (SEXP) objects for use with cpp. Since we already have the cpp objects ready not much
+    // is needed here. We mainly make sure all our parameters are in a form to call modelSelectionGibbs.
+
     void modelSelectionGibbsCI(const arma::vec &SpostModeini,
                                double SpostModeiniProb,
                                int Sknownphi,
@@ -19,7 +29,7 @@ namespace MombfBridge {
                                int Sburnin,
                                int Sndeltaini,
                                arma::Col<int> &Sdeltaini,
-                               arma::Col<int> &Sincludevars,
+                               arma::vec &Sincludevars,
                                int Sn,
                                int Sp,
                                arma::vec &Sy,
@@ -110,16 +120,17 @@ namespace MombfBridge {
         isgroup         = ivector(0, Sp);
         nconstraints    = ivector(0, Sngroups);
         ninvconstraints = ivector(0, Sngroups);
-        countConstraints(nconstraints,
-                         &constraints,
-                         ninvconstraints,
-                         &invconstraints,
-                         &ngroupsconstr,
-                         isgroup,
-                         Sngroups,
-                         Snvaringroup,
-                         Sconstraints,
-                         Sinvconstraints);
+        // TODO this is quite annoying since it uses SEXP objects which we do not have! Bridge needed
+        // countConstraints(nconstraints,
+        //                  &constraints,
+        //                  ninvconstraints,
+        //                  &invconstraints,
+        //                  &ngroupsconstr,
+        //                  isgroup,
+        //                  &Sngroups,
+        //                  (int *) Snvaringroup.memptr(),
+        //                  &Sconstraints,
+        //                  Sinvconstraints);
 
         if (ShasXtX) {
             XtX = new crossprodmat(SXtX.memptr(), Sn, Sp, true);
@@ -205,7 +216,7 @@ namespace MombfBridge {
                             &Sburnin,
                             &Sndeltaini,
                             Sdeltaini.memptr(),
-                            Sincludevars.memptr(),
+                            (int *) Sincludevars.memptr(),
                             &constraints,
                             &invconstraints,
                             &Sverbose,
@@ -219,9 +230,85 @@ namespace MombfBridge {
         // return ans;
     }
 
+    /* -------------------------------------------------------------------------- */
+    /*                                 getthinit                                  */
+    /* -------------------------------------------------------------------------- */
+    // The following code provides 2 functions and an enum to emulate the getthinit and initParameters
+    // R functions.
 
+
+    // Enum to replace the strings used in the original R code
+    enum InitparType {
+        None,
+        MLE,
+        MLE_aisg,
+        L1,
+        L2_aisgd,
+        Auto,
+    };
+
+    // The original function used the initpar as a string (always a string and never vec here!). Instead
+    // we use our enum. For now we assume family to always be 1 (=normal!). Thus some code is not translated
+    arma::vec initParameters(const arma::vec &y, const arma::mat &x, int family,
+                             InitparType initpar) {
+        int n = y.n_elem;
+        int p = x.n_cols;
+
+        if (initpar == InitparType::Auto) {
+            if (p <= n / 2) {
+                initpar = InitparType::MLE;
+            } else {
+                initpar = InitparType::L1;
+            }
+        }
+
+        // I think these lines should never be needed. Setting the family here should not do anything since we
+        // are hard coding it later. And initpar should never be none here. 
+        // if (!(family % in % c('binomial', 'poisson'))) family = 'gaussian'
+        // if (initpar == 'none') {
+        //     ans = rep(0, p)
+        // }
+
+        // TODO if needed the lasso code can probably easily be adapted to accept arma types directly
+        // Convert Armadillo data to the format expected by LassoRegression
+        std::vector<std::vector<double> > samples(n, std::vector<double>(p));
+        std::vector<double> target(n);
+
+        for (int i = 0; i < n; ++i) {
+            target[i] = y(i);
+            for (int j = 0; j < p; ++j) {
+                samples[i][j] = x(i, j);
+            }
+        }
+
+        // Furthermore I think that we ALWAYS hit the L1 case? So we will simply use a lasso here not matter what
+        // Create LassoRegression object
+        LassoRegression lasso(samples, target);
+
+        // Set tolerance and alpha for coordinate descent
+        double tolerance = 0.001;
+        double alpha     = 0.01; // This corresponds to the regularization strength
+
+        // Run cyclical coordinate descent to get the weights
+        double *weights = lasso.cyclicalCoordinateDescent(tolerance, alpha);
+
+        // Convert the result (double*) to arma::vec
+        arma::vec arma_weights(weights, p, false, true);
+
+        // Clean up the dynamically allocated weights array
+        delete[] weights;
+
+        return arma_weights;
+    }
+
+
+    // Translation of the R function found in initParameters.R
+    // Since mixing types in C++ is not really a thing and the original function uses the initpar parameter
+    // as either a string or a vector, instead here initpar is only a vec. If it is NOT empty, the the value
+    // is used directly. If it is empty, the type in initpar_type shall be used to determin what value
+    // usethinit should be set to
     std::pair<arma::vec, int> getthinit(const arma::vec &y, const arma::mat &x, int family,
-                                        const arma::vec &initpar, bool enumerate) {
+                                        const arma::vec &initpar, bool enumerate, InitparType initpar_type) {
         arma::vec thinit;
         int usethinit;
 
@@ -234,19 +321,33 @@ namespace MombfBridge {
                     " elements");
             }
         } else {
-            usethinit = 3;
-            thinit    = initParameters(y, x, family, "");
+            if (initpar_type == InitparType::None) {
+                if (enumerate) {
+                    usethinit = 0;
+                } else {
+                    usethinit = 1;
+                }
+            } else {
+                usethinit = 3;
+            }
+            thinit = initParameters(y, x, family, initpar_type);
             // Passing an empty string as initpar to match the original logic for missing/auto
         }
 
         return {thinit, usethinit};
     }
 
+    /* -------------------------------------------------------------------------- */
+    /*                               modelSelection                               */
+    /* -------------------------------------------------------------------------- */
+    // This is a (very much simplified) version of the R function. Many parameters are hard coded since their values
+    // are expected to remain the way they are for now in order for us not having to translate every single function
+    // used within this one.
 
-    void modelSelection(const arma::vec &y, const arma::mat &x, int niter, int thinning = 1, int burnin,
-                        const arma::Col<int> &includevars, arma::Col<int> &deltaini_input, bool center, bool scale,
-                        bool XtXprecomp = (x.n_cols < 10000), double phi, double tau, double priorSkew,
-                        double prDeltap) {
+    void modelSelection(const arma::vec &y, const arma::mat &x, int niter, int thinning, int burnin,
+                        arma::vec &deltaini_input, bool center, bool scale,
+                        bool XtXprecomp, double phi, double tau, double priorSkew,
+                        double prDeltap, arma::vec thinit, InitparType initpar_type) {
         int p = x.n_cols;
         int n = y.n_elem;
 
@@ -278,6 +379,7 @@ namespace MombfBridge {
         // Translation of the respective R code:
         // ndeltaini <- as.integer(sum(deltaini | includevars))
         // deltaini <- as.integer(which(deltaini | includevars) - 1)
+        arma::vec includevars = arma::vec().zeros(p);
 
         int ndeltaini           = arma::sum(deltaini_input || includevars);
         arma::uvec indices      = arma::find(deltaini_input || includevars);
@@ -350,7 +452,8 @@ namespace MombfBridge {
         // In R, this standardizes columns with non-zero standard deviation
         // In Armadillo, we'll loop through columns and only standardize those with ct(j) == 0
         for (size_t j = 0; j < p; ++j) {
-            if (ct(j) == 0) { // If sx(j) is not 0 (equivalent to !ct in R)
+            if (ct(j) == 0) {
+                // If sx(j) is not 0 (equivalent to !ct in R)
                 xstd.col(j) = (x.col(j) - mx(j)) / sx(j);
             }
         }
@@ -414,11 +517,14 @@ namespace MombfBridge {
         // Default is set to 10? Not really a default but we set it in our list of "default" parameters?
         int optim_maxit = 10;
 
-        /* --------------------------------- thinit --------------------------------- */
+        /* -------------------------- thinit and usethinit -------------------------- */
+        // Thinit uses a lasso for initialization - put into its own function for clearity
+        int usethinit;
 
-        /* ------------------------------- usethinit -------------------------------- */
-        // Fixed to 3
-        int usethinit = 3;
+        auto res  = getthinit(y, x, familyint, thinit, false, initpar_type);
+        thinit    = res.first;
+        usethinit = res.second;
+
 
         /* ----------------------------------- B ------------------------------------ */
         // Default parameter set to 100000
@@ -549,7 +655,7 @@ namespace MombfBridge {
                               prConstr,
                               prConstrp,
                               parprConstrp,
-                              groups,
+                              (int *) groups.memptr(),
                               ngroups,
                               nvaringroup,
                               constraints,
