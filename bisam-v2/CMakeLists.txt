@@ -41,6 +41,10 @@ execute_process(
         OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
+# Find OpenBLAS (try this before finding Armadillo)
+find_package(BLAS REQUIRED)
+find_package(LAPACK REQUIRED)
+
 # Find regular Armadillo (might still be needed)
 find_package(Armadillo REQUIRED)
 
@@ -51,10 +55,27 @@ message(STATUS "RcppArmadillo include: ${RCPPARMADILLO_INCLUDE_DIR}")
 message(STATUS "Rcpp include: ${RCPP_INCLUDE_DIR}")
 message(STATUS "Armadillo includes: ${ARMADILLO_INCLUDE_DIRS}")
 message(STATUS "Armadillo libs: ${ARMADILLO_LIBRARIES}")
+message(STATUS "BLAS libraries: ${BLAS_LIBRARIES}")
+message(STATUS "LAPACK libraries: ${LAPACK_LIBRARIES}")
+
+# Define the directory containing the mombf files
+set(MOMBF_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/mombf/mombf/src)
+
+# Find all .h and .cpp files in the mombf source directory
+file(GLOB_RECURSE MOMBF_SOURCES
+        "${MOMBF_SRC_DIR}/*.h"
+        "${MOMBF_SRC_DIR}/*.cpp"
+)
 
 add_executable(bisam_v2 main.cpp
         controlled-simulation.h
-        mombf-bridge.h)
+        mombf-bridge.h
+        ${MOMBF_SOURCES}
+        lib/lasso/LassoRegression.h
+        lib/lasso/LassoRegression.cpp
+        lib/lasso/matrix.cpp
+        lib/lasso/matrix.h
+)
 
 # Include all necessary directories
 target_include_directories(bisam_v2 PRIVATE
@@ -62,10 +83,13 @@ target_include_directories(bisam_v2 PRIVATE
         ${RCPPARMADILLO_INCLUDE_DIR}
         ${RCPP_INCLUDE_DIR}
         ${ARMADILLO_INCLUDE_DIRS}
+        ${MOMBF_SRC_DIR} # Include the mombf source directory for header files
 )
 
 # Link against libraries
 target_link_libraries(bisam_v2 PRIVATE
         ${ARMADILLO_LIBRARIES}
+        ${BLAS_LIBRARIES}
+        ${LAPACK_LIBRARIES}
         -L${R_LIB_DIR} -lR
 )
