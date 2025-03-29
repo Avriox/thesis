@@ -5,12 +5,97 @@
 #ifndef MOMBF_BRIDGE_H
 #define MOMBF_BRIDGE_H
 
-#include <complex.h>
 #include "lib/lasso/LassoRegression.h"
 
 #include "mombf/mombf/src/modelSel_regression.h"
 
 namespace MombfBridge {
+    /* ---------------------------- countConstraints ---------------------------- */
+    // Since count constraints in mombf accepts FOR WHATEVER REASON SEXP objects and we are not using them,
+    // we need a version without them.
+
+    void countConstraints(int *nconstraints,
+                          intptrvec *constraints,
+                          int *ninvconstraints,
+                          intptrvec *invconstraints,
+                          int *ngroupsconstr,
+                          int *isgroup,
+                          int *ngroups,
+                          int *nvaringroup,
+                          arma::ivec &Sconstraints,
+                          arma::ivec &Sinvconstraints) {
+        /*Count number of constraints, number of groups with constraints, determine which variables are in a group*/
+
+        int i, j, jj;
+        int offset_constraints    = 0;
+        int offset_invconstraints = 0;
+        *ngroupsconstr            = 0;
+
+        constraints->clear();
+        invconstraints->clear();
+
+        // Create temporary storage for constraint data that intptrvec can point to
+        int **temp_constraints    = new int *[*ngroups];
+        int **temp_invconstraints = new int *[*ngroups];
+
+        for (j = 0, jj = 0; j < *ngroups; j++) {
+            // Get number of constraints for this group
+            nconstraints[j] = Sconstraints(j);
+
+            // Add pointer to constraints for this group
+            if (nconstraints[j] > 0) {
+                // Allocate memory for constraints
+                temp_constraints[j] = new int[nconstraints[j]];
+
+                // Copy constraint values
+                for (i = 0; i < nconstraints[j]; i++) {
+                    temp_constraints[j][i] = Sconstraints(*ngroups + offset_constraints + i);
+                }
+
+                constraints->push_back(temp_constraints[j]);
+                offset_constraints += nconstraints[j];
+                (*ngroupsconstr)++;
+            } else {
+                temp_constraints[j] = nullptr;
+                constraints->push_back(nullptr);
+            }
+
+            // Get number of inverse constraints for this group
+            ninvconstraints[j] = Sinvconstraints(j);
+
+            // Add pointer to inverse constraints for this group
+            if (ninvconstraints[j] > 0) {
+                // Allocate memory for inverse constraints
+                temp_invconstraints[j] = new int[ninvconstraints[j]];
+
+                // Copy inverse constraint values
+                for (i = 0; i < ninvconstraints[j]; i++) {
+                    temp_invconstraints[j][i] = Sinvconstraints(*ngroups + offset_invconstraints + i);
+                }
+
+                invconstraints->push_back(temp_invconstraints[j]);
+                offset_invconstraints += ninvconstraints[j];
+            } else {
+                temp_invconstraints[j] = nullptr;
+                invconstraints->push_back(nullptr);
+            }
+
+            // Mark which variables belong to a group
+            isgroup[jj] = ((int) (nvaringroup[j] + 0.1)) > 1;
+            jj++;
+            for (i = 1; i < nvaringroup[j]; i++, jj++) {
+                isgroup[jj] = isgroup[jj - 1];
+            }
+        }
+
+        // Note: We're not freeing temp_constraints and temp_invconstraints arrays here
+        // as the pointers are now stored in constraints and invconstraints vectors.
+        // They should be freed when no longer needed elsewhere in the code.
+        // delete[] temp_constraints;
+        // delete[] temp_invconstraints;
+    }
+
+
     /* -------------------------------------------------------------------------- */
     /*                           ModelSelectionGibbsCI                            */
     /* -------------------------------------------------------------------------- */
@@ -18,59 +103,82 @@ namespace MombfBridge {
     // prepares the R (SEXP) objects for use with cpp. Since we already have the cpp objects ready not much
     // is needed here. We mainly make sure all our parameters are in a form to call modelSelectionGibbs.
 
-    void modelSelectionGibbsCI(const arma::vec &SpostModeini,
-                               double SpostModeiniProb,
-                               int Sknownphi,
-                               int Sfamily,
-                               int SpriorCoef,
-                               int SpriorGroup,
-                               int Sniter,
-                               int Sthinning,
-                               int Sburnin,
-                               int Sndeltaini,
-                               arma::Col<int> &Sdeltaini,
-                               arma::vec &Sincludevars,
-                               int Sn,
-                               int Sp,
-                               arma::vec &Sy,
-                               int Suncens,
-                               double Ssumy2,
-                               double Ssumy,
-                               double Ssumlogyfact,
-                               arma::mat &Sx,
-                               arma::vec &Scolsumsx,
-                               bool ShasXtX,
-                               arma::mat &SXtX,
-                               arma::rowvec &SytX,
-                               int Smethod,
-                               int Sadjoverdisp,
-                               int Shesstype,
-                               int SoptimMethod,
-                               int Soptim_maxit,
-                               arma::vec Sthinit,
-                               int Susethinit,
-                               int SB,
-                               double Salpha,
-                               double Slambda,
-                               double Sphi,
-                               double Stau,
-                               double Staugroup,
-                               double Staualpha,
-                               int Sfixatanhalpha,
-                               int Sr,
-                               int SpriorDelta,
-                               double SprDeltap,
-                               int SparprDeltap,
-                               int SpriorConstr,
-                               double SprConstrp,
-                               int SparprConstrp,
-                               int *Sgroups,
-                               int Sngroups,
-                               arma::uvec &Snvaringroup,
-                               arma::ivec &Sconstraints,
-                               arma::ivec &Sinvconstraints,
-                               int Sverbose) {
-        // bool hasXtX = LOGICAL(ShasXtX)[0];
+    struct GibbsOutput {
+        int *postSample;
+        double *margpp;
+        int *postMode;
+        double *postModeProb;
+        double *postProb;
+        int mcmc2save;
+        int mycols;
+        int mycols2;
+
+        GibbsOutput() : postSample(nullptr), margpp(nullptr), postMode(nullptr), postModeProb(nullptr),
+                        postProb(nullptr), mcmc2save(0), mycols(0), mycols2(0) {
+        }
+
+        ~GibbsOutput() {
+            delete[] postSample;
+            delete[] margpp;
+            delete[] postMode;
+            delete[] postModeProb;
+            delete[] postProb;
+        }
+    };
+
+    arma::Col<int> modelSelectionGibbsCI(const arma::vec &SpostModeini,
+                                         double SpostModeiniProb,
+                                         int Sknownphi,
+                                         int Sfamily,
+                                         int SpriorCoef,
+                                         int SpriorGroup,
+                                         int Sniter,
+                                         int Sthinning,
+                                         int Sburnin,
+                                         int Sndeltaini,
+                                         arma::Col<int> &Sdeltaini,
+                                         arma::Col<int> &Sincludevars,
+                                         int Sn,
+                                         int Sp,
+                                         arma::vec &Sy,
+                                         int Suncens,
+                                         double Ssumy2,
+                                         double Ssumy,
+                                         double Ssumlogyfact,
+                                         arma::mat &Sx,
+                                         arma::vec &Scolsumsx,
+                                         bool ShasXtX,
+                                         arma::mat &SXtX,
+                                         arma::rowvec &SytX,
+                                         int Smethod,
+                                         int Sadjoverdisp,
+                                         int Shesstype,
+                                         int SoptimMethod,
+                                         int Soptim_maxit,
+                                         arma::vec Sthinit,
+                                         int Susethinit,
+                                         int SB,
+                                         double Salpha,
+                                         double Slambda,
+                                         double Sphi,
+                                         double Stau,
+                                         double Staugroup,
+                                         double Staualpha,
+                                         double Sfixatanhalpha,
+                                         int Sr,
+                                         int SpriorDelta,
+                                         double SprDeltap,
+                                         double SparprDeltap,
+                                         int SpriorConstr,
+                                         double SprConstrp,
+                                         double SparprConstrp,
+                                         int *Sgroups,
+                                         int Sngroups,
+                                         arma::Col<int> &Snvaringroup,
+                                         arma::ivec &Sconstraints,
+                                         arma::ivec &Sinvconstraints,
+                                         int Sverbose) {
+        GibbsOutput output;
 
         int i, j, idxj, logscale = 1, mcmc2save, *postSample, *postMode, mycols, mycols2, *nconstraints, *
                 ninvconstraints, nuncens, ngroupsconstr = 0, *isgroup, usethinit = Susethinit, priorcode;
@@ -80,17 +188,16 @@ namespace MombfBridge {
         crossprodmat *XtX, *XtXuncens = NULL;
         struct marginalPars pars;
 
-        // TODO Answer struct does not yet exist
-        // SEXP ans;
-        // PROTECT(ans = Rf_allocVector(VECSXP, 5));
-
-        mcmc2save = floor((Sniter - Sburnin + .0) / (Sthinning + .0));
+        output.mcmc2save = floor((Sniter - Sburnin + .0) / (Sthinning + .0));
         if (Sfamily != 0) {
-            mycols = mycols2 = Sp;
+            output.mycols = output.mycols2 = Sp;
         } else {
-            mycols  = 2 + Sp;
-            mycols2 = mycols + 2;
+            output.mycols  = 2 + Sp;
+            output.mycols2 = output.mycols + 2;
         }
+        mcmc2save = output.mcmc2save;
+        mycols    = output.mycols;
+        mycols2   = output.mycols2;
 
         thinit = dvector(0, mycols2 + 1);
         if (usethinit != 3) {
@@ -99,38 +206,38 @@ namespace MombfBridge {
             for (j = 0; j <= Sp; j++) { thinit[j] = Sthinit[j]; }
         }
 
-        // SET_VECTOR_ELT(ans, 0, Rf_allocVector(INTSXP, mcmc2save * mycols));
-        // postSample = INTEGER(VECTOR_ELT(ans, 0));
+        output.postSample = new int[mcmc2save * mycols];
+        postSample        = output.postSample;
         for (j = 0; j < (mcmc2save * mycols); j++) postSample[j] = 0;
 
-        // SET_VECTOR_ELT(ans, 1, Rf_allocVector(REALSXP, mycols2));
-        // margpp = REAL(VECTOR_ELT(ans, 1));
-        //
-        // SET_VECTOR_ELT(ans, 2, Rf_allocVector(INTSXP, mycols));
-        // postMode = INTEGER(VECTOR_ELT(ans, 2));
+        output.margpp = new double[mycols2];
+        margpp        = output.margpp;
+
+        output.postMode = new int[mycols];
+        postMode        = output.postMode;
         for (j = 0; j < mycols; j++) { postMode[j] = SpostModeini[j]; }
 
-        // SET_VECTOR_ELT(ans, 3, Rf_allocVector(REALSXP, 1));
-        // postModeProb    = REAL(VECTOR_ELT(ans, 3));
-        postModeProb[0] = SpostModeiniProb;
+        output.postModeProb = new double[1];
+        postModeProb        = output.postModeProb;
+        postModeProb[0]     = SpostModeiniProb;
 
-        // SET_VECTOR_ELT(ans, 4, Rf_allocVector(REALSXP, mcmc2save));
-        // postProb = REAL(VECTOR_ELT(ans, 4));
-        //
+        output.postProb = new double[mcmc2save];
+        postProb        = output.postProb;
+
         isgroup         = ivector(0, Sp);
         nconstraints    = ivector(0, Sngroups);
         ninvconstraints = ivector(0, Sngroups);
         // TODO this is quite annoying since it uses SEXP objects which we do not have! Bridge needed
-        // countConstraints(nconstraints,
-        //                  &constraints,
-        //                  ninvconstraints,
-        //                  &invconstraints,
-        //                  &ngroupsconstr,
-        //                  isgroup,
-        //                  &Sngroups,
-        //                  (int *) Snvaringroup.memptr(),
-        //                  &Sconstraints,
-        //                  Sinvconstraints);
+        countConstraints(nconstraints,
+                         &constraints,
+                         ninvconstraints,
+                         &invconstraints,
+                         &ngroupsconstr,
+                         isgroup,
+                         &Sngroups,
+                         (int *) Snvaringroup.memptr(),
+                         Sconstraints,
+                         Sinvconstraints);
 
         if (ShasXtX) {
             XtX = new crossprodmat(SXtX.memptr(), Sn, Sp, true);
@@ -182,20 +289,19 @@ namespace MombfBridge {
                          &Stau,
                          &Staugroup,
                          &Staualpha,
-                         (double *) Sfixatanhalpha,
+                         &Sfixatanhalpha,
                          &Sr,
                          &SprDeltap,
-                         (double *) SparprDeltap,
+                         &SparprDeltap,
                          &SprConstrp,
-                         (double *) SparprConstrp,
+                         &SparprConstrp,
                          &logscale,
                          &offset,
                          Sgroups,
                          isgroup,
                          &Sngroups,
                          &ngroupsconstr,
-                         // TODO not super clean.
-                         (int *) Snvaringroup.memptr(),
+                         Snvaringroup.memptr(),
                          nconstraints,
                          ninvconstraints,
                          XtXuncens,
@@ -203,6 +309,147 @@ namespace MombfBridge {
 
         priorcode      = mspriorCode(&SpriorCoef, &SpriorGroup, &pars);
         pars.priorcode = &priorcode;
+
+
+        // // --- Debugging Print Statements ---
+        // std::cout << "--- Parameters for modelSelectionGibbs ---" << std::endl;
+        //
+        // std::cout << "postSample (first 10 elements): ";
+        // for (int k = 0; k < std::min(10, mcmc2save * mycols); ++k) {
+        //     std::cout << postSample[k] << " ";
+        // }
+        // std::cout << (mcmc2save * mycols > 10 ? "..." : "") << std::endl;
+        // std::cout << "Dimensions of postSample: " << mcmc2save << " x " << mycols << std::endl;
+        //
+        // std::cout << "margpp: ";
+        // for (int k = 0; k < mycols2; ++k) {
+        //     std::cout << margpp[k] << " ";
+        // }
+        // std::cout << std::endl;
+        // std::cout << "Length of margpp: " << mycols2 << std::endl;
+        //
+        // std::cout << "postMode: ";
+        // for (int k = 0; k < mycols; ++k) {
+        //     std::cout << postMode[k] << " ";
+        // }
+        // std::cout << std::endl;
+        // std::cout << "Length of postMode: " << mycols << std::endl;
+        //
+        // std::cout << "postModeProb: " << postModeProb[0] << std::endl;
+        //
+        // std::cout << "postProb (first 10 elements): ";
+        // for (int k = 0; k < std::min(10, mcmc2save); ++k) {
+        //     std::cout << postProb[k] << " ";
+        // }
+        // std::cout << (mcmc2save > 10 ? "..." : "") << std::endl;
+        // std::cout << "Length of postProb: " << mcmc2save << std::endl;
+        //
+        // std::cout << "priorDelta: " << SpriorDelta << std::endl;
+        // std::cout << "priorConstr: " << SpriorConstr << std::endl;
+        // std::cout << "niter: " << Sniter << std::endl;
+        // std::cout << "thinning: " << Sthinning << std::endl;
+        // std::cout << "burnin: " << Sburnin << std::endl;
+        // std::cout << "ndeltaini: " << Sndeltaini << std::endl;
+        //
+        // std::cout << "deltaini: ";
+        // for (int k = 0; k < Sdeltaini.n_elem; ++k) {
+        //     std::cout << Sdeltaini(k) << " ";
+        // }
+        // std::cout << std::endl;
+        // std::cout << "Length of deltaini: " << Sdeltaini.n_elem << std::endl;
+        //
+        // std::cout << "includevars: ";
+        // for (int k = 0; k < Sincludevars.n_elem; ++k) {
+        //     std::cout << static_cast<int>(Sincludevars(k)) << " ";
+        // }
+        // std::cout << std::endl;
+        // std::cout << "Length of includevars: " << Sincludevars.n_elem << std::endl;
+        //
+        // std::cout << "constraints (first level pointers): " << constraints.size() << std::endl;
+        // std::cout << "invconstraints (first level pointers): " << invconstraints.size() << std::endl;
+        //
+        // std::cout << "verbose: " << Sverbose << std::endl;
+        //
+        // std::cout << "--- Parameters of pars struct ---" << std::endl;
+        // std::cout << "pars.family: " << *(pars.family) << std::endl;
+        // std::cout << "pars.n: " << *(pars.n) << std::endl;
+        // std::cout << "pars.nuncens: " << *(pars.nuncens) << std::endl;
+        // std::cout << "pars.p: " << *(pars.p) << std::endl;
+        // std::cout << "pars.y (first 10 elements): ";
+        // for (int k = 0; k < std::min(10, *(pars.n)); ++k) std::cout << pars.y[k] << " ";
+        // std::cout << (*(pars.n) > 10 ? "..." : "") << std::endl;
+        // std::cout << "pars.uncens: " << *(pars.uncens) << std::endl;
+        // std::cout << "pars.sumy2: " << *(pars.sumy2) << std::endl;
+        // std::cout << "pars.sumy: " << *(pars.sumy) << std::endl;
+        // std::cout << "pars.sumlogyfact: " << *(pars.sumlogyfact) << std::endl;
+        // std::cout << "pars.x (first 10 elements): ";
+        // for (int k = 0; k < std::min(10, (*(pars.n) * *(pars.p))); ++k) std::cout << pars.x[k] << " ";
+        // std::cout << ((*(pars.n) * *(pars.p)) > 10 ? "..." : "") << std::endl;
+        // std::cout << "pars.colsumsx (first " << *(pars.p) << " elements): ";
+        // for (int k = 0; k < *(pars.p); ++k) std::cout << pars.colsumsx[k] << " ";
+        // std::cout << std::endl;
+        // std::cout << "pars.XtX: (printing address) " << pars.XtX << std::endl;
+        // std::cout << "pars.ytX (first " << *(pars.p) << " elements): ";
+        // for (int k = 0; k < *(pars.p); ++k) std::cout << pars.ytX[k] << " ";
+        // std::cout << std::endl;
+        // std::cout << "pars.method: " << *(pars.method) << std::endl;
+        // std::cout << "pars.adjoverdisp: " << *(pars.adjoverdisp) << std::endl;
+        // std::cout << "pars.hesstype: " << *(pars.hesstype) << std::endl;
+        // std::cout << "pars.optimMethod: " << *(pars.optimMethod) << std::endl;
+        // std::cout << "pars.optim_maxit: " << *(pars.optim_maxit) << std::endl;
+        // std::cout << "pars.usethinit: " << *(pars.usethinit) << std::endl;
+        // std::cout << "pars.thinit (first 10 elements): ";
+        // for (int k = 0; k < std::min(10, mycols2 + 2); ++k) std::cout << pars.thinit[k] << " ";
+        // std::cout << (mycols2 + 2 > 10 ? "..." : "") << std::endl;
+        // std::cout << "pars.B: " << *(pars.B) << std::endl;
+        // std::cout << "pars.alpha: " << *(pars.alpha) << std::endl;
+        // std::cout << "pars.lambda: " << *(pars.lambda) << std::endl;
+        // std::cout << "pars.knownphi: " << *(pars.knownphi) << std::endl;
+        // std::cout << "pars.phi: " << *(pars.phi) << std::endl;
+        // std::cout << "pars.tau: " << *(pars.tau) << std::endl;
+        // std::cout << "pars.taugroup: " << *(pars.taugroup) << std::endl;
+        // std::cout << "pars.taualpha: " << *(pars.taualpha) << std::endl;
+        // std::cout << "pars.fixatanhalpha: " << *(pars.fixatanhalpha) << std::endl;
+        // std::cout << "pars.r: " << *(pars.r) << std::endl;
+        // std::cout << "pars.prDeltap: " << *(pars.prDeltap) << std::endl;
+        // std::cout << "pars.parprDeltap: " << *(pars.parprDeltap) << std::endl;
+        // std::cout << "pars.prConstrp: " << *(pars.prConstrp) << std::endl;
+        // std::cout << "pars.parprConstrp: " << *(pars.parprConstrp) << std::endl;
+        // std::cout << "pars.logscale: " << *(pars.logscale) << std::endl;
+        // std::cout << "pars.offset: " << *(pars.offset) << std::endl;
+        // std::cout << "pars.groups (first " << Sngroups << " elements): ";
+        // if (pars.groups != nullptr) {
+        //     for (int k = 0; k < Sngroups; ++k) std::cout << pars.groups[k] << " ";
+        //     std::cout << std::endl;
+        // } else {
+        //     std::cout << "NULL" << std::endl;
+        // }
+        // std::cout << "pars.isgroup (first " << Sp << " elements): ";
+        // for (int k = 0; k < Sp; ++k) std::cout << pars.isgroup[k] << " ";
+        // std::cout << std::endl;
+        // std::cout << "pars.ngroups: " << *(pars.ngroups) << std::endl;
+        // std::cout << "pars.ngroupsconstr: " << *(pars.ngroupsconstr) << std::endl;
+        // std::cout << "pars.nvaringroup (first " << Sngroups << " elements): ";
+        // for (int k = 0; k < Sngroups; ++k) std::cout << static_cast<int>(Snvaringroup(k)) << " ";
+        // std::cout << std::endl;
+        // std::cout << "pars.nconstraints (first " << Sngroups << " elements): ";
+        // for (int k = 0; k < Sngroups; ++k) std::cout << pars.nconstraints[k] << " ";
+        // std::cout << std::endl;
+        // std::cout << "pars.ninvconstraints (first " << Sngroups << " elements): ";
+        // for (int k = 0; k < Sngroups; ++k) std::cout << pars.ninvconstraints[k] << " ";
+        // std::cout << std::endl;
+        // std::cout << "pars.XtXuncens: (printing address) " << pars.XtXuncens << std::endl;
+        // std::cout << "pars.ytXuncens (first " << Sp << " elements): ";
+        // if (pars.ytXuncens != nullptr) {
+        //     for (int k = 0; k < Sp; ++k) std::cout << pars.ytXuncens[k] << " ";
+        //     std::cout << std::endl;
+        // } else {
+        //     std::cout << "NULL" << std::endl;
+        // }
+        // std::cout << "pars.priorcode: " << *(pars.priorcode) << std::endl;
+        //
+        // // --- End of Debugging Print Statements ---
+
 
         modelSelectionGibbs(postSample,
                             margpp,
@@ -227,8 +474,15 @@ namespace MombfBridge {
         free_ivector(nconstraints, 0, Sngroups);
         free_ivector(ninvconstraints, 0, Sngroups);
         delete XtX;
-        // return ans;
+        delete XtXuncens; // Added deallocation for XtXuncens
+
+
+        // TODO this extra copy here is really not all that nice!
+        arma::Col<int> post_sample = arma::Col<int>(mcmc2save * mycols);
+        for (j = 0; j < (mcmc2save * mycols); j++) post_sample[j] = postSample[j];
+        return post_sample;
     }
+
 
     /* -------------------------------------------------------------------------- */
     /*                                 getthinit                                  */
@@ -344,10 +598,10 @@ namespace MombfBridge {
     // are expected to remain the way they are for now in order for us not having to translate every single function
     // used within this one.
 
-    void modelSelection(const arma::vec &y, const arma::mat &x, int niter, int thinning, int burnin,
-                        arma::vec &deltaini_input, bool center, bool scale,
-                        bool XtXprecomp, double phi, double tau, double priorSkew,
-                        double prDeltap, arma::vec thinit, InitparType initpar_type) {
+    arma::Col<int> modelSelection(const arma::vec &y, const arma::mat &x, int niter, int thinning, int burnin,
+                                  arma::Col<int> &deltaini_input, bool center, bool scale,
+                                  bool XtXprecomp, double phi, double tau, double priorSkew,
+                                  double prDeltap, arma::vec thinit, InitparType initpar_type) {
         int p = x.n_cols;
         int n = y.n_elem;
 
@@ -379,7 +633,8 @@ namespace MombfBridge {
         // Translation of the respective R code:
         // ndeltaini <- as.integer(sum(deltaini | includevars))
         // deltaini <- as.integer(which(deltaini | includevars) - 1)
-        arma::vec includevars = arma::vec().zeros(p);
+        arma::Col<int> includevars(p); // = arma::vec().zeros(p);
+        includevars.fill(arma::fill::zeros);
 
         int ndeltaini           = arma::sum(deltaini_input || includevars);
         arma::uvec indices      = arma::find(deltaini_input || includevars);
@@ -413,10 +668,10 @@ namespace MombfBridge {
         //      my <- mean(y)
         // }
         if (!center) {
-            double my = 0.0;
-            arma::vec mx(p, arma::fill::zeros);
+            my = 0.0;
+            mx.fill(arma::fill::zeros);
         } else {
-            double my = arma::mean(y);
+            my = arma::mean(y);
         }
 
         // if (!scale) {
@@ -426,10 +681,10 @@ namespace MombfBridge {
         //      sy <- sd(y)
         // }
         if (!scale) {
-            double sy = 1.0;
-            arma::vec sx(p, arma::fill::ones);
+            sy = 1.0;
+            sx.fill(arma::fill::ones);
         } else {
-            double sy = arma::stddev(y);
+            sy = arma::stddev(y);
         }
 
         // Since typeofvar is always "numeric" in our case so far, this code block is skipped.
@@ -457,6 +712,7 @@ namespace MombfBridge {
                 xstd.col(j) = (x.col(j) - mx(j)) / sx(j);
             }
         }
+
 
         // sumy2 <- as.double(sum(ystd^2))
         // Using dot product which is more efficient for sum of squares
@@ -588,7 +844,7 @@ namespace MombfBridge {
         /* --------------------------------- groups --------------------------------- */
         // Vector with numbers 0 to 20. Groups is modiefied (compared to default parameter) in
         // codeGroupsAndConstraints
-        arma::uvec groups = arma::regspace<arma::uvec>(0, p - 1);
+        arma::Col<int> groups = arma::regspace<arma::Col<int> >(0, p - 1);
 
         /* -------------------------------- ngroups --------------------------------- */
         // = p
@@ -596,7 +852,8 @@ namespace MombfBridge {
 
         /* ------------------------------ nvaringroup ------------------------------- */
         // nvaringroup <- as.integer(rep(1, p))
-        arma::uvec nvaringroup = arma::regspace<arma::uvec>(1, p);
+        // arma::uvec nvaringroup = arma::regspace<arma::uvec>(1, p);
+        arma::Col<int> nvaringroup = arma::Col<int>().ones(p);
 
         /* ------------------------------ constraints ------------------------------- */
         // I am not 100% sure about constraints and invconstraints. Further checking may be needed
@@ -607,60 +864,64 @@ namespace MombfBridge {
         arma::ivec invconstraints = arma::ivec().zeros(p);
 
         /* -------------------------------- verbose --------------------------------- */
-        int verbose = 1;
+        // Has to be set to 0 otherwise some mombf code (calling Rprintf?) segfaults
+        int verbose = 0;
 
-        modelSelectionGibbsCI(postMode,
-                              postModeProb,
-                              knownphi,
-                              familyint,
-                              prior,
-                              priorgr,
-                              niter,
-                              thinning,
-                              burnin,
-                              ndeltaini,
-                              deltaini,
-                              includevars,
-                              n,
-                              p,
-                              ystd,
-                              uncens,
-                              sumy2,
-                              sumy,
-                              sumlogyfact,
-                              xstd,
-                              colsumsx,
-                              hasXtX,
-                              XtX,
-                              ytX,
-                              method,
-                              adj_overdisp,
-                              hesstype,
-                              optimMethod,
-                              optim_maxit,
-                              thinit,
-                              usethinit,
-                              B,
-                              alpha,
-                              lambda,
-                              phi,
-                              tau,
-                              taugroup,
-                              taualpha,
-                              fixatanhalpha,
-                              r,
-                              prDelta,
-                              prDeltap,
-                              parprDeltap,
-                              prConstr,
-                              prConstrp,
-                              parprConstrp,
-                              (int *) groups.memptr(),
-                              ngroups,
-                              nvaringroup,
-                              constraints,
-                              invconstraints,
-                              verbose);
+        arma::Col<int> output = modelSelectionGibbsCI(postMode,
+                                                      postModeProb,
+                                                      knownphi,
+                                                      familyint,
+                                                      prior,
+                                                      priorgr,
+                                                      niter,
+                                                      thinning,
+                                                      burnin,
+                                                      ndeltaini,
+                                                      deltaini,
+                                                      includevars,
+                                                      n,
+                                                      p,
+                                                      ystd,
+                                                      uncens,
+                                                      sumy2,
+                                                      sumy,
+                                                      sumlogyfact,
+                                                      xstd,
+                                                      colsumsx,
+                                                      hasXtX,
+                                                      XtX,
+                                                      ytX,
+                                                      method,
+                                                      adj_overdisp,
+                                                      hesstype,
+                                                      optimMethod,
+                                                      optim_maxit,
+                                                      thinit,
+                                                      usethinit,
+                                                      B,
+                                                      alpha,
+                                                      lambda,
+                                                      phi,
+                                                      tau,
+                                                      taugroup,
+                                                      taualpha,
+                                                      fixatanhalpha,
+                                                      r,
+                                                      prDelta,
+                                                      prDeltap,
+                                                      parprDeltap,
+                                                      prConstr,
+                                                      prConstrp,
+                                                      parprConstrp,
+                                                      groups.memptr(),
+                                                      ngroups,
+                                                      nvaringroup,
+                                                      constraints,
+                                                      invconstraints,
+                                                      verbose);
+
+
+        return output;
     }
 }
 #endif //MOMBF_BRIDGE_H

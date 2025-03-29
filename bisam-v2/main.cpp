@@ -3,7 +3,7 @@
 #include "controlled-simulation.h"
 #include "mombf-bridge.h"
 
-#define DEBUG_PRINTING // Print some additional debug info. Comment to disable. 
+// #define DEBUG_PRINTING // Print some additional debug info. Comment to disable. 
 
 int main() {
     /* -------------------------------------------------------------------------- */
@@ -226,7 +226,7 @@ int main() {
     arma::vec g_incl_i = g_i; // always non zero for rnlp within Gibbs; last value conditional on inclusion
     double s2_i        = 1.0;
 
-    arma::vec w_i(r, arma::fill::zeros);
+    arma::Col<int> w_i(r, arma::fill::zeros);
 
     // TODO z_cols will be a sequence from 0 to ncol(z) - 1 compared to Rs 1 to ncol(z) because of 0 based indexing
     //  verify that this is correct
@@ -269,7 +269,7 @@ int main() {
     arma::mat g_store(Nstore, r);
     arma::mat s2_store(Nstore, 1);
 
-    arma::mat w_store(Nstore, r);
+    arma::Mat<int> w_store(Nstore, r);
 
 #ifdef DEBUG_PRINTING
     printf("Simulated Data: \n");
@@ -429,31 +429,35 @@ int main() {
             thinit = g_i;
         }
 
-        MombfBridge::modelSelection(y_hat,
-                                    Z,
-                                    nn,
-                                    1,
-                                    nn - 1,
-                                    w_i,
-                                    false,
-                                    false,
-                                    true,
-                                    s2_i,
-                                    tau,
-                                    0.348,
-                                    0.5,
-                                    thinit,
-                                    initpar_type
+        arma::Col<int> post_sample = MombfBridge::modelSelection(y_hat,
+                                                                 Z,
+                                                                 nn,
+                                                                 1,
+                                                                 nn - 1,
+                                                                 w_i,
+                                                                 false,
+                                                                 false,
+                                                                 true,
+                                                                 s2_i,
+                                                                 tau,
+                                                                 0.348,
+                                                                 0.5,
+                                                                 thinit,
+                                                                 initpar_type
         );
 
 
-        arma::vec w_i_mod_postSample(r);
-        if (iter == 1 - Nburn) {
-            w_i_mod_postSample.zeros(); // Placeholder initialization
-        } else {
-            w_i_mod_postSample.ones(); // Another placeholder
-        }
-        w_i = w_i_mod_postSample;
+        w_i = post_sample;
+
+        std::cout << w_i.t() << std::endl;
+
+        // arma::vec w_i_mod_postSample(r);
+        // if (iter == 1 - Nburn) {
+        //     w_i_mod_postSample.zeros(); // Placeholder initialization
+        // } else {
+        //     w_i_mod_postSample.ones(); // Another placeholder
+        // }
+        // w_i = w_i_mod_postSample;
 
 
         if (geweke) {
