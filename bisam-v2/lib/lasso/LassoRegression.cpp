@@ -8,16 +8,15 @@
 #include <iostream>
 #include <fstream>
 
-LassoRegression::LassoRegression(std::vector<std::vector<double>> samples, std::vector<double> target) {
-    this->numberOfSamples = samples.size();
+LassoRegression::LassoRegression(std::vector<std::vector<double> > samples, std::vector<double> target) {
+    this->numberOfSamples  = samples.size();
     this->numberOfFeatures = samples[0].size();
-    this->features = featuresMatrix(samples);
+    this->features         = featuresMatrix(samples);
 
 
     this->features = normalizeFeatures(this->features);
-    this->weights = initialWeights();
-    this->target = targetAsArray(target);
-
+    this->weights  = initialWeights();
+    this->target   = targetAsArray(target);
 }
 
 double *LassoRegression::predictions() {
@@ -38,13 +37,13 @@ double *LassoRegression::ro() {
     double *results = new double[numberOfFeatures];
 
     for (int idx = 0; idx < numberOfFeatures; idx++) {
-        double *penaltyVector = vectorMultiply(feature(idx), numberOfSamples, weights[idx]);
+        double *penaltyVector  = vectorMultiply(feature(idx), numberOfSamples, weights[idx]);
         double *predictionDiff = vectorAdd(target, vectorMultiply(predictions(), numberOfSamples, -1), numberOfSamples);
-        double *roVector = vectorMultiplyComponentWise(feature(idx),
+        double *roVector       = vectorMultiplyComponentWise(feature(idx),
                                                        vectorAdd(predictionDiff, penaltyVector, numberOfSamples),
                                                        numberOfSamples);
         double roValue = vectorSum(roVector, numberOfSamples);
-        results[idx] = roValue;
+        results[idx]   = roValue;
     }
 
     return results;
@@ -57,7 +56,6 @@ double LassoRegression::coordinateDescentStep(int weightIdx, double alpha) {
     double newWeight;
     if (weightIdx == 0) {
         newWeight = roValues[weightIdx];
-
     } else if (roValues[weightIdx] < (-1.0) * alpha / 2.0) {
         newWeight = roValues[weightIdx] + alpha / 2.0;
     } else if (roValues[weightIdx] > alpha / 2.0) {
@@ -74,33 +72,31 @@ double *LassoRegression::cyclicalCoordinateDescent(double tolerance, double alph
     double maxChange;
 
     while (condition) {
-        maxChange = 0.0;
+        maxChange          = 0.0;
         double *newWeights = new double[numberOfFeatures];
 
         for (int weightIdx = 0; weightIdx < numberOfFeatures; ++weightIdx) {
-            double oldWeight = weights[weightIdx];
-            double newWeight = coordinateDescentStep(weightIdx, alpha);
-            newWeights[weightIdx] = newWeight;
-            weights[weightIdx] = newWeight;
+            double oldWeight        = weights[weightIdx];
+            double newWeight        = coordinateDescentStep(weightIdx, alpha);
+            newWeights[weightIdx]   = newWeight;
+            weights[weightIdx]      = newWeight;
             double coordinateChange = fabs(oldWeight - newWeight);
 
             if (coordinateChange > maxChange) {
                 maxChange = coordinateChange;
-                std::cout << "MAX CHANGE: " << maxChange << " " << weightIdx << std::endl;
+                // std::cout << "MAX CHANGE: " << maxChange << " " << weightIdx << std::endl;
             }
         }
 
         if (maxChange < tolerance) {
             condition = false;
         }
-
-
     }
 
     return weights;
 }
 
-double **LassoRegression::featuresMatrix(std::vector<std::vector<double>> samples) {
+double **LassoRegression::featuresMatrix(std::vector<std::vector<double> > samples) {
     double **matrix = emptyMatrix();
 
     for (int sampleIdx = 0; sampleIdx < numberOfSamples; sampleIdx++) {
@@ -113,7 +109,6 @@ double **LassoRegression::featuresMatrix(std::vector<std::vector<double>> sample
 }
 
 double **LassoRegression::normalizeFeatures(double **matrix) {
-
     for (int featureIdx = 0; featureIdx < numberOfFeatures; ++featureIdx) {
         double featureNorm = norm(feature(featureIdx), numberOfSamples);
         for (int sampleIdx = 0; sampleIdx < numberOfSamples; ++sampleIdx) {

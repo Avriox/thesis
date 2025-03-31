@@ -43,3 +43,4 @@ cmake_install.cmake
 .Rhistory
 
 bisam-v2/mombf_3.5.4
+*/cmake-build-*

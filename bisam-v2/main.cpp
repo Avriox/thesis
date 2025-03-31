@@ -271,6 +271,8 @@ int main() {
 
     arma::Mat<int> w_store(Nstore, r);
 
+
+    arma::vec g_i_n0 = g_i;
 #ifdef DEBUG_PRINTING
     printf("Simulated Data: \n");
     std::cout << data << '\n';
@@ -449,7 +451,7 @@ int main() {
 
         w_i = post_sample;
 
-        std::cout << w_i.t() << std::endl;
+        // std::cout << w_i.t() << std::endl;
 
         // arma::vec w_i_mod_postSample(r);
         // if (iter == 1 - Nburn) {
@@ -478,11 +480,36 @@ int main() {
 
         // ==================== draw p(g|w,a,b,s2,y) ====================
         if (arma::sum(w_i) > 0) {
+            arma::vec ans = arma::vec().zeros(Z.n_cols);
+
+            int nonZeroCount = arma::accu(w_i != 0);
+
+            // Create a new matrix with the same number of rows as Z and columns equal to nonZeroCount
+            arma::dmat filteredZ(Z.n_rows, nonZeroCount);
+
+            arma::vec filteredGi(nonZeroCount);
+
+            int currentCol = 0;
+            for (int i = 0; i < w_i.size(); ++i) {
+                if (w_i(i) != 0) {
+                    // Copy the corresponding column from Z to filteredZ
+                    filteredZ.col(currentCol) = Z.col(i);
+                    filteredGi(currentCol)    = g_i_n0(i);
+                    ++currentCol;
+                }
+            }
+
+            rnlpPost_lm(ans.memptr(), 1, 0, 1, y_hat.memptr(), filteredZ.memptr(), y_hat.size(), filteredZ.n_cols,
+                        1, tau_b, c0, C0, 1);
+
+
             arma::vec g_i_draw;
             arma::mat Z_subset = Z.cols(w_1_Z_indices);
 
             // Assume BISAM::rnlp_wrapper function exists and returns an arma::vec
             // Placeholder for the rnlp_wrapper function call
+
+
             g_i_draw.zeros(arma::sum(w_i));
             arma::vec g_i_temp(r, arma::fill::zeros);
             arma::vec g_incl_i_temp = g_incl_i;
@@ -519,6 +546,24 @@ int main() {
     }
     std::cout << "Gibbs Sampler finished." << std::endl;
 
+    /* -------------------------------------------------------------------------- */
+    /*                        Calculate and Print w_store Means                      */
+    /* -------------------------------------------------------------------------- */
+    std::cout << "Calculating column means of w_store..." << std::endl;
+
+    // Calculate column means of w_store
+    arma::rowvec w_store_means(r);
+    for (int j = 0; j < r; ++j) {
+        double sum = 0.0;
+        for (int i = 0; i < Nstore; ++i) {
+            sum += w_store(i, j);
+        }
+        w_store_means(j) = sum / Nstore;
+    }
+
+    // Print the results
+    std::cout << "Column means of w_store:" << std::endl;
+    std::cout << w_store_means.t() << std::endl;
 
     return 0;
 }

@@ -209,8 +209,8 @@ colnames(w_store)<-colnames(Z)
 pb <- txtProgressBar(min = 0, max = Ndraw, style = 3)
 
 #$$$$$$$$$$$$$$$$$$$$$ START LOOP $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-# for(i in (1-Nburn):Nstore){
-  i = (1-Nburn)
+for(i in (1-Nburn):Nstore){
+  #i = (1-Nburn)
   
   #================ Geweke Test =================.====
   if(geweke){
@@ -370,9 +370,10 @@ pb <- txtProgressBar(min = 0, max = Ndraw, style = 3)
       tau = tau,
       a_phi = 1, # variance parameter
       b_phi = 1, # variance parameter
-      prior = 1, # imom
-      thini = g_incl_i,
-      phiini = s2_i)
+      prior = 1#, # imom
+    )
+      #thini = g_incl_i,
+      #phiini = s2_i)
     g_draw
     
     # g_draw <- BISAM::rnlp(
@@ -421,7 +422,7 @@ pb <- txtProgressBar(min = 0, max = Ndraw, style = 3)
     s2_store[i,]<-s2_i
   }
   setTxtProgressBar(pb, (i + Nburn))
-# }
+}
 timer <- Sys.time() - start_time
 close(pb)
 cat("Finished after ", format(round(timer, 2)), ".\n", sep = "")
