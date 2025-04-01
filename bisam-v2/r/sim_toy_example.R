@@ -10,9 +10,8 @@ rm(list = ls())
 # BiocManager::install("sparseMatrixStats", force = TRUE)
 
 #remove.packages("mombf")
-#install.packages("mombf")
 #devtools::install("../mombf/mombf")
-#install.packages("../mombf/mombf", repos = NULL, type = "source")
+
 
 # setwd("~/uni/wu/sis_project")
 
@@ -22,7 +21,7 @@ source("./contr_sim_breaks_fun.R")
 
 set.seed(192837612)
 n <- 3 # number of sim. observations
-t <- 10 # number of sim. time periods
+t <- 20 # number of sim. time periods
 nx <- 3 # number of regressors
 const <- FALSE # inclusion of a constant
 ife <- F # inclusion of indiv. fixed effects
@@ -33,7 +32,7 @@ p.outl <- 0.0 # probability of outlier in a Series
 p.step <- 0.0 # probability of a stepshift in a Series
 outl.mean <- 0 # mean of size of outlier
 outl.sd <- 0 # variance of size of outlier
-step.mean <- 5 # mean of size of stepshift
+step.mean <- 10 # mean of size of stepshift
 step.sd <- 0.00 # variance of size of stepshift
 error.sd <- 1 # variance of the error
 
@@ -223,6 +222,8 @@ for(i in (1-Nburn):Nstore){
   CN  <- C0+1/2*crossprod(y-X%*%b_i-Z%*%g_i)
   s2_i<- 1/rgamma(1,shape=cN, rate=CN)
   
+  s2_i <- sqrt(2)
+  
   #=================== draw p(b|a,g,s2,y) ==========.====
   if(b_prior == "hs"){
     # draw p(xi,nu|b,s2,y) ========.====
@@ -255,6 +256,7 @@ for(i in (1-Nburn):Nstore){
     b_i <- t(rmvnorm(1,bN,BN))
   }
   
+  b_i <- c(1,-1,2)
   #================ draw p(w|a,b,s2,y) =========.====
   y_hat <- y-X%*%b_i
   
@@ -266,36 +268,36 @@ for(i in (1-Nburn):Nstore){
   }
   
   
-  y = y_hat;
-  x = Z;
-  groups=1:ncol(x);
-  nknots=9;
-  center = FALSE;
-  scale = FALSE;
-  enumerate = FALSE;
-  includevars=rep(FALSE,ncol(x));
-  niter = nn;
-  thinning=1;
-  burnin = nn-1;
-  family = "normal";
-  priorCoef = imomprior(tau = tau);
-  priorDelta = modelbinomprior(0.50);
-  phi = s2_i;
-  deltaini = as.logical(w_i);
-  initSearch = 'none';
-  method = 'ALA';
-  hess = "asymp";
-  initpar = 'auto';#g_i; # fixed in initParameters.R function getthinit
-  #begin for debugging
-  adj.overdisp='intercept';
-  optimMethod="auto";
-  optim_maxit=10;
-  B=10^5;
-  priorVar=igprior(.01,.01);
-  priorSkew=momprior(tau=0.348);
-  #end for debugging
-  XtXprecomp = TRUE;
-  verbose = FALSE;
+  # y = y_hat;
+  # x = Z;
+  # groups=1:ncol(x);
+  # nknots=9;
+  # center = FALSE;
+  # scale = FALSE;
+  # enumerate = FALSE;
+  # includevars=rep(FALSE,ncol(x));
+  # niter = nn;
+  # thinning=1;
+  # burnin = nn-1;
+  # family = "normal";
+  # priorCoef = imomprior(tau = tau);
+  # priorDelta = modelbinomprior(0.50);
+  # phi = s2_i;
+  # deltaini = as.logical(w_i);
+  # initSearch = 'none';
+  # method = 'ALA';
+  # hess = "asymp";
+  # initpar = 'auto';#g_i; # fixed in initParameters.R function getthinit
+  # #begin for debugging
+  # adj.overdisp='intercept';
+  # optimMethod="auto";
+  # optim_maxit=10;
+  # B=10^5;
+  # priorVar=igprior(.01,.01);
+  # priorSkew=momprior(tau=0.348);
+  # #end for debugging
+  # XtXprecomp = TRUE;
+  # verbose = FALSE;
   
   
   w_i_mod <- modelSelection( # in modelSelection.R -> General model selection routines
@@ -367,10 +369,16 @@ for(i in (1-Nburn):Nstore){
       thinning = 1,
       y = y_hat,
       x = Z[,w_1_Z,drop=F],
-      tau = tau,
-      a_phi = 1, # variance parameter
-      b_phi = 1, # variance parameter
-      prior = 1#, # imom
+      priorCoef = imomprior(tau=tau), 
+      priorVar = igprior(100000, 100000), 
+      outcometype = "Continuous", 
+      family = "normal"
+      #,
+      # tau = tau
+      # ,
+      # a_phi = 1, # variance parameter
+      # b_phi = 1, # variance parameter
+      # prior = 1#, # imom
     )
       #thini = g_incl_i,
       #phiini = s2_i)

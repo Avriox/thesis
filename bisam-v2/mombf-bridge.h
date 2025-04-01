@@ -9,6 +9,238 @@
 
 #include "mombf/mombf/src/modelSel_regression.h"
 
+
+// Print function to display all parameters for modelSelectionGibbsCI
+void printModelSelectionParameters(
+    const arma::vec &SpostModeini,
+    double SpostModeiniProb,
+    int Sknownphi,
+    int Sfamily,
+    int SpriorCoef,
+    int SpriorGroup,
+    int Sniter,
+    int Sthinning,
+    int Sburnin,
+    int Sndeltaini,
+    arma::Col<int> &Sdeltaini,
+    arma::Col<int> &Sincludevars,
+    int Sn,
+    int Sp,
+    arma::vec &Sy,
+    int Suncens,
+    double Ssumy2,
+    double Ssumy,
+    double Ssumlogyfact,
+    arma::mat &Sx,
+    arma::vec &Scolsumsx,
+    bool ShasXtX,
+    arma::mat &SXtX,
+    arma::rowvec &SytX,
+    int Smethod,
+    int Sadjoverdisp,
+    int Shesstype,
+    int SoptimMethod,
+    int Soptim_maxit,
+    arma::vec Sthinit,
+    int Susethinit,
+    int SB,
+    double Salpha,
+    double Slambda,
+    double Sphi,
+    double Stau,
+    double Staugroup,
+    double Staualpha,
+    double Sfixatanhalpha,
+    int Sr,
+    int SpriorDelta,
+    double SprDeltap,
+    double SparprDeltap,
+    int SpriorConstr,
+    double SprConstrp,
+    double SparprConstrp,
+    int *Sgroups,
+    int Sngroups,
+    arma::Col<int> &Snvaringroup,
+    arma::ivec &Sconstraints,
+    arma::ivec &Sinvconstraints,
+    int Sverbose) {
+    // std::cout << "==== MODEL SELECTION GIBBS CI PARAMETERS ====" << std::endl << std::endl;
+    //
+    // // Print scalar parameters
+    // std::cout << "SpostModeiniProb\n" << SpostModeiniProb << "\n\n";
+    // std::cout << "Sknownphi\n" << Sknownphi << "\n\n";
+    // std::cout << "Sfamily\n" << Sfamily << "\n\n";
+    // std::cout << "SpriorCoef\n" << SpriorCoef << "\n\n";
+    // std::cout << "SpriorGroup\n" << SpriorGroup << "\n\n";
+    // std::cout << "Sniter\n" << Sniter << "\n\n";
+    // std::cout << "Sthinning\n" << Sthinning << "\n\n";
+    // std::cout << "Sburnin\n" << Sburnin << "\n\n";
+    // std::cout << "Sndeltaini\n" << Sndeltaini << "\n\n";
+    // std::cout << "Sn\n" << Sn << "\n\n";
+    // std::cout << "Sp\n" << Sp << "\n\n";
+    // std::cout << "Suncens\n" << Suncens << "\n\n";
+    // std::cout << "Ssumy2\n" << Ssumy2 << "\n\n";
+    // std::cout << "Ssumy\n" << Ssumy << "\n\n";
+    // std::cout << "Ssumlogyfact\n" << Ssumlogyfact << "\n\n";
+    // std::cout << "ShasXtX\n" << ShasXtX << "\n\n";
+    // std::cout << "Smethod\n" << Smethod << "\n\n";
+    // std::cout << "Sadjoverdisp\n" << Sadjoverdisp << "\n\n";
+    // std::cout << "Shesstype\n" << Shesstype << "\n\n";
+    // std::cout << "SoptimMethod\n" << SoptimMethod << "\n\n";
+    // std::cout << "Soptim_maxit\n" << Soptim_maxit << "\n\n";
+    // std::cout << "Susethinit\n" << Susethinit << "\n\n";
+    // std::cout << "SB\n" << SB << "\n\n";
+    // std::cout << "Salpha\n" << Salpha << "\n\n";
+    // std::cout << "Slambda\n" << Slambda << "\n\n";
+    // std::cout << "Sphi\n" << Sphi << "\n\n";
+    // std::cout << "Stau\n" << Stau << "\n\n";
+    // std::cout << "Staugroup\n" << Staugroup << "\n\n";
+    // std::cout << "Staualpha\n" << Staualpha << "\n\n";
+    // std::cout << "Sfixatanhalpha\n" << Sfixatanhalpha << "\n\n";
+    // std::cout << "Sr\n" << Sr << "\n\n";
+    // std::cout << "SpriorDelta\n" << SpriorDelta << "\n\n";
+    // std::cout << "SprDeltap\n" << SprDeltap << "\n\n";
+    // std::cout << "SparprDeltap\n" << SparprDeltap << "\n\n";
+    // std::cout << "SpriorConstr\n" << SpriorConstr << "\n\n";
+    // std::cout << "SprConstrp\n" << SprConstrp << "\n\n";
+    // std::cout << "SparprConstrp\n" << SparprConstrp << "\n\n";
+    // std::cout << "Sngroups\n" << Sngroups << "\n\n";
+    // std::cout << "Sverbose\n" << Sverbose << "\n\n";
+    //
+    // // Print vector and matrix parameters
+    // std::cout << "SpostModeini\n";
+    // SpostModeini.print();
+    // std::cout << "\n";
+    //
+    // std::cout << "Sdeltaini\n";
+    // Sdeltaini.print();
+    // std::cout << "\n";
+    //
+    // std::cout << "Sincludevars\n";
+    // Sincludevars.print();
+    // std::cout << "\n";
+    //
+    // std::cout << "Sy (first 10 elements or all if less)\n";
+    // if (Sy.n_elem > 10) {
+    //     Sy.rows(0, 9).print();
+    //     std::cout << "... [" << Sy.n_elem - 10 << " more elements]" << std::endl;
+    // } else {
+    //     Sy.print();
+    // }
+    // std::cout << "\n";
+    //
+    // std::cout << "Sx (dimensions and first few elements)\n";
+    // std::cout << "Dimensions: " << Sx.n_rows << " x " << Sx.n_cols << std::endl;
+    // if (Sx.n_elem > 0) {
+    //     int print_rows = std::min(5, (int) Sx.n_rows);
+    //     int print_cols = std::min(5, (int) Sx.n_cols);
+    //     Sx.submat(0, 0, print_rows - 1, print_cols - 1).print();
+    //     if (Sx.n_rows > 5 || Sx.n_cols > 5) {
+    //         std::cout << "... [more elements]" << std::endl;
+    //     }
+    // }
+    // std::cout << "\n";
+    //
+    // std::cout << "Scolsumsx\n";
+    // if (Scolsumsx.n_elem > 10) {
+    //     Scolsumsx.rows(0, 9).print();
+    //     std::cout << "... [" << Scolsumsx.n_elem - 10 << " more elements]" << std::endl;
+    // } else {
+    //     Scolsumsx.print();
+    // }
+    // std::cout << "\n";
+    //
+    // if (ShasXtX) {
+    //     std::cout << "SXtX (dimensions and first few elements)\n";
+    //     std::cout << "Dimensions: " << SXtX.n_rows << " x " << SXtX.n_cols << std::endl;
+    //     if (SXtX.n_elem > 0) {
+    //         int print_rows = std::min(5, (int) SXtX.n_rows);
+    //         int print_cols = std::min(5, (int) SXtX.n_cols);
+    //         SXtX.submat(0, 0, print_rows - 1, print_cols - 1).print();
+    //         if (SXtX.n_rows > 5 || SXtX.n_cols > 5) {
+    //             std::cout << "... [more elements]" << std::endl;
+    //         }
+    //     }
+    // } else {
+    //     std::cout << "SXtX\nNot used (ShasXtX is false)\n";
+    // }
+    // std::cout << "\n";
+    //
+    // std::cout << "SytX\n";
+    // if (SytX.n_elem > 10) {
+    //     SytX.cols(0, 9).print();
+    //     std::cout << "... [" << SytX.n_elem - 10 << " more elements]" << std::endl;
+    // } else {
+    //     SytX.print();
+    // }
+    // std::cout << "\n";
+    //
+    // std::cout << "Sthinit\n";
+    // if (Sthinit.n_elem > 10) {
+    //     Sthinit.rows(0, 9).print();
+    //     std::cout << "... [" << Sthinit.n_elem - 10 << " more elements]" << std::endl;
+    // } else {
+    //     Sthinit.print();
+    // }
+    // std::cout << "\n";
+    //
+    // std::cout << "Sgroups (first 10 elements or all if less)\n";
+    // for (int i = 0; i < std::min(10, Sngroups); i++) {
+    //     std::cout << Sgroups[i] << " ";
+    // }
+    // if (Sngroups > 10) {
+    //     std::cout << "... [" << Sngroups - 10 << " more elements]";
+    // }
+    // std::cout << "\n\n";
+    //
+    // std::cout << "Snvaringroup\n";
+    // if (Snvaringroup.n_elem > 10) {
+    //     Snvaringroup.rows(0, 9).print();
+    //     std::cout << "... [" << Snvaringroup.n_elem - 10 << " more elements]" << std::endl;
+    // } else {
+    //     Snvaringroup.print();
+    // }
+    // std::cout << "\n";
+    //
+    // std::cout << "Sconstraints\n";
+    // if (Sconstraints.n_elem > 10) {
+    //     Sconstraints.rows(0, 9).print();
+    //     std::cout << "... [" << Sconstraints.n_elem - 10 << " more elements]" << std::endl;
+    // } else {
+    //     Sconstraints.print();
+    // }
+    // std::cout << "\n";
+    //
+    // std::cout << "Sinvconstraints\n";
+    // if (Sinvconstraints.n_elem > 10) {
+    //     Sinvconstraints.rows(0, 9).print();
+    //     std::cout << "... [" << Sinvconstraints.n_elem - 10 << " more elements]" << std::endl;
+    // } else {
+    //     Sinvconstraints.print();
+    // }
+    // std::cout << "\n";
+    //
+    // std::cout << "==== END OF PARAMETERS ====" << std::endl;
+}
+
+// Example of how to use this inside the modelSelection function
+// Just add this line before calling modelSelectionGibbsCI:
+
+/*
+printModelSelectionParameters(
+    postMode, postModeProb, knownphi, familyint, prior, priorgr,
+    niter, thinning, burnin, ndeltaini, deltaini, includevars,
+    n, p, ystd, uncens, sumy2, sumy, sumlogyfact,
+    xstd, colsumsx, hasXtX, XtX, ytX, method, adj_overdisp,
+    hesstype, optimMethod, optim_maxit, thinit, usethinit,
+    B, alpha, lambda, phi, tau, taugroup, taualpha,
+    fixatanhalpha, r, prDelta, prDeltap, parprDeltap,
+    prConstr, prConstrp, parprConstrp, groups.memptr(),
+    ngroups, nvaringroup, constraints, invconstraints, verbose
+);
+*/
+
+
 namespace MombfBridge {
     /* ---------------------------- countConstraints ---------------------------- */
     // Since count constraints in mombf accepts FOR WHATEVER REASON SEXP objects and we are not using them,
@@ -125,6 +357,7 @@ namespace MombfBridge {
             delete[] postProb;
         }
     };
+
 
     arma::Col<int> modelSelectionGibbsCI(const arma::vec &SpostModeini,
                                          double SpostModeiniProb,
@@ -399,7 +632,7 @@ namespace MombfBridge {
         // std::cout << "pars.optim_maxit: " << *(pars.optim_maxit) << std::endl;
         // std::cout << "pars.usethinit: " << *(pars.usethinit) << std::endl;
         // std::cout << "pars.thinit (first 10 elements): ";
-        // for (int k = 0; k < std::min(10, mycols2 + 2); ++k) std::cout << pars.thinit[k] << " ";
+        // for (int k = 0; k < std::min(50, mycols2 + 2); ++k) std::cout << pars.thinit[k] << " ";
         // std::cout << (mycols2 + 2 > 10 ? "..." : "") << std::endl;
         // std::cout << "pars.B: " << *(pars.B) << std::endl;
         // std::cout << "pars.alpha: " << *(pars.alpha) << std::endl;
@@ -771,7 +1004,8 @@ namespace MombfBridge {
 
         /* ------------------------------ optim_maxit ------------------------------- */
         // Default is set to 10? Not really a default but we set it in our list of "default" parameters?
-        int optim_maxit = 10;
+        // Review mit Lucas: setzen wir mal auf 0
+        int optim_maxit = 0;
 
         /* -------------------------- thinit and usethinit -------------------------- */
         // Thinit uses a lasso for initialization - put into its own function for clearity
@@ -820,6 +1054,9 @@ namespace MombfBridge {
         /* -------------------------------- prDelta --------------------------------- */
         int prDelta = 1;
 
+        // TODO INVESTIGATION NEEDED
+        prDelta = 2;
+
         /* -------------------------------- prDeltap -------------------------------- */
         // Parameter priorDelta@priorPars[["p"]]
 
@@ -830,6 +1067,9 @@ namespace MombfBridge {
         /* -------------------------------- prConstr -------------------------------- */
         // Fixed to one in formatmsPriorsMarg
         int prConstr = 1;
+
+        // TODO INVESTIGATION NEEDED
+        prConstr = 2;
 
         /* ------------------------------- prConstrp -------------------------------- */
         // priorConstraints < -defaultpriorConstraints(priorDelta)
@@ -866,6 +1106,62 @@ namespace MombfBridge {
         /* -------------------------------- verbose --------------------------------- */
         // Has to be set to 0 otherwise some mombf code (calling Rprintf?) segfaults
         int verbose = 0;
+
+        std::cout << "Printing all parameters before calling modelSelectionGibbsCI:" << std::endl;
+        printModelSelectionParameters(
+            postMode,
+            postModeProb,
+            knownphi,
+            familyint,
+            prior,
+            priorgr,
+            niter,
+            thinning,
+            burnin,
+            ndeltaini,
+            deltaini,
+            includevars,
+            n,
+            p,
+            ystd,
+            uncens,
+            sumy2,
+            sumy,
+            sumlogyfact,
+            xstd,
+            colsumsx,
+            hasXtX,
+            XtX,
+            ytX,
+            method,
+            adj_overdisp,
+            hesstype,
+            optimMethod,
+            optim_maxit,
+            thinit,
+            usethinit,
+            B,
+            alpha,
+            lambda,
+            phi,
+            tau,
+            taugroup,
+            taualpha,
+            fixatanhalpha,
+            r,
+            prDelta,
+            prDeltap,
+            parprDeltap,
+            prConstr,
+            prConstrp,
+            parprConstrp,
+            groups.memptr(),
+            ngroups,
+            nvaringroup,
+            constraints,
+            invconstraints,
+            verbose
+        );
 
         arma::Col<int> output = modelSelectionGibbsCI(postMode,
                                                       postModeProb,
