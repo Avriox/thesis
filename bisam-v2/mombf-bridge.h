@@ -64,163 +64,163 @@ void printModelSelectionParameters(
     arma::ivec &Sconstraints,
     arma::ivec &Sinvconstraints,
     int Sverbose) {
-    // std::cout << "==== MODEL SELECTION GIBBS CI PARAMETERS ====" << std::endl << std::endl;
-    //
-    // // Print scalar parameters
-    // std::cout << "SpostModeiniProb\n" << SpostModeiniProb << "\n\n";
-    // std::cout << "Sknownphi\n" << Sknownphi << "\n\n";
-    // std::cout << "Sfamily\n" << Sfamily << "\n\n";
-    // std::cout << "SpriorCoef\n" << SpriorCoef << "\n\n";
-    // std::cout << "SpriorGroup\n" << SpriorGroup << "\n\n";
-    // std::cout << "Sniter\n" << Sniter << "\n\n";
-    // std::cout << "Sthinning\n" << Sthinning << "\n\n";
-    // std::cout << "Sburnin\n" << Sburnin << "\n\n";
-    // std::cout << "Sndeltaini\n" << Sndeltaini << "\n\n";
-    // std::cout << "Sn\n" << Sn << "\n\n";
-    // std::cout << "Sp\n" << Sp << "\n\n";
-    // std::cout << "Suncens\n" << Suncens << "\n\n";
-    // std::cout << "Ssumy2\n" << Ssumy2 << "\n\n";
-    // std::cout << "Ssumy\n" << Ssumy << "\n\n";
-    // std::cout << "Ssumlogyfact\n" << Ssumlogyfact << "\n\n";
-    // std::cout << "ShasXtX\n" << ShasXtX << "\n\n";
-    // std::cout << "Smethod\n" << Smethod << "\n\n";
-    // std::cout << "Sadjoverdisp\n" << Sadjoverdisp << "\n\n";
-    // std::cout << "Shesstype\n" << Shesstype << "\n\n";
-    // std::cout << "SoptimMethod\n" << SoptimMethod << "\n\n";
-    // std::cout << "Soptim_maxit\n" << Soptim_maxit << "\n\n";
-    // std::cout << "Susethinit\n" << Susethinit << "\n\n";
-    // std::cout << "SB\n" << SB << "\n\n";
-    // std::cout << "Salpha\n" << Salpha << "\n\n";
-    // std::cout << "Slambda\n" << Slambda << "\n\n";
-    // std::cout << "Sphi\n" << Sphi << "\n\n";
-    // std::cout << "Stau\n" << Stau << "\n\n";
-    // std::cout << "Staugroup\n" << Staugroup << "\n\n";
-    // std::cout << "Staualpha\n" << Staualpha << "\n\n";
-    // std::cout << "Sfixatanhalpha\n" << Sfixatanhalpha << "\n\n";
-    // std::cout << "Sr\n" << Sr << "\n\n";
-    // std::cout << "SpriorDelta\n" << SpriorDelta << "\n\n";
-    // std::cout << "SprDeltap\n" << SprDeltap << "\n\n";
-    // std::cout << "SparprDeltap\n" << SparprDeltap << "\n\n";
-    // std::cout << "SpriorConstr\n" << SpriorConstr << "\n\n";
-    // std::cout << "SprConstrp\n" << SprConstrp << "\n\n";
-    // std::cout << "SparprConstrp\n" << SparprConstrp << "\n\n";
-    // std::cout << "Sngroups\n" << Sngroups << "\n\n";
-    // std::cout << "Sverbose\n" << Sverbose << "\n\n";
-    //
-    // // Print vector and matrix parameters
-    // std::cout << "SpostModeini\n";
-    // SpostModeini.print();
-    // std::cout << "\n";
-    //
-    // std::cout << "Sdeltaini\n";
-    // Sdeltaini.print();
-    // std::cout << "\n";
-    //
-    // std::cout << "Sincludevars\n";
-    // Sincludevars.print();
-    // std::cout << "\n";
-    //
-    // std::cout << "Sy (first 10 elements or all if less)\n";
-    // if (Sy.n_elem > 10) {
-    //     Sy.rows(0, 9).print();
-    //     std::cout << "... [" << Sy.n_elem - 10 << " more elements]" << std::endl;
-    // } else {
-    //     Sy.print();
-    // }
-    // std::cout << "\n";
-    //
-    // std::cout << "Sx (dimensions and first few elements)\n";
-    // std::cout << "Dimensions: " << Sx.n_rows << " x " << Sx.n_cols << std::endl;
-    // if (Sx.n_elem > 0) {
-    //     int print_rows = std::min(5, (int) Sx.n_rows);
-    //     int print_cols = std::min(5, (int) Sx.n_cols);
-    //     Sx.submat(0, 0, print_rows - 1, print_cols - 1).print();
-    //     if (Sx.n_rows > 5 || Sx.n_cols > 5) {
-    //         std::cout << "... [more elements]" << std::endl;
-    //     }
-    // }
-    // std::cout << "\n";
-    //
-    // std::cout << "Scolsumsx\n";
-    // if (Scolsumsx.n_elem > 10) {
-    //     Scolsumsx.rows(0, 9).print();
-    //     std::cout << "... [" << Scolsumsx.n_elem - 10 << " more elements]" << std::endl;
-    // } else {
-    //     Scolsumsx.print();
-    // }
-    // std::cout << "\n";
-    //
-    // if (ShasXtX) {
-    //     std::cout << "SXtX (dimensions and first few elements)\n";
-    //     std::cout << "Dimensions: " << SXtX.n_rows << " x " << SXtX.n_cols << std::endl;
-    //     if (SXtX.n_elem > 0) {
-    //         int print_rows = std::min(5, (int) SXtX.n_rows);
-    //         int print_cols = std::min(5, (int) SXtX.n_cols);
-    //         SXtX.submat(0, 0, print_rows - 1, print_cols - 1).print();
-    //         if (SXtX.n_rows > 5 || SXtX.n_cols > 5) {
-    //             std::cout << "... [more elements]" << std::endl;
-    //         }
-    //     }
-    // } else {
-    //     std::cout << "SXtX\nNot used (ShasXtX is false)\n";
-    // }
-    // std::cout << "\n";
-    //
-    // std::cout << "SytX\n";
-    // if (SytX.n_elem > 10) {
-    //     SytX.cols(0, 9).print();
-    //     std::cout << "... [" << SytX.n_elem - 10 << " more elements]" << std::endl;
-    // } else {
-    //     SytX.print();
-    // }
-    // std::cout << "\n";
-    //
-    // std::cout << "Sthinit\n";
-    // if (Sthinit.n_elem > 10) {
-    //     Sthinit.rows(0, 9).print();
-    //     std::cout << "... [" << Sthinit.n_elem - 10 << " more elements]" << std::endl;
-    // } else {
-    //     Sthinit.print();
-    // }
-    // std::cout << "\n";
-    //
-    // std::cout << "Sgroups (first 10 elements or all if less)\n";
-    // for (int i = 0; i < std::min(10, Sngroups); i++) {
-    //     std::cout << Sgroups[i] << " ";
-    // }
-    // if (Sngroups > 10) {
-    //     std::cout << "... [" << Sngroups - 10 << " more elements]";
-    // }
-    // std::cout << "\n\n";
-    //
-    // std::cout << "Snvaringroup\n";
-    // if (Snvaringroup.n_elem > 10) {
-    //     Snvaringroup.rows(0, 9).print();
-    //     std::cout << "... [" << Snvaringroup.n_elem - 10 << " more elements]" << std::endl;
-    // } else {
-    //     Snvaringroup.print();
-    // }
-    // std::cout << "\n";
-    //
-    // std::cout << "Sconstraints\n";
-    // if (Sconstraints.n_elem > 10) {
-    //     Sconstraints.rows(0, 9).print();
-    //     std::cout << "... [" << Sconstraints.n_elem - 10 << " more elements]" << std::endl;
-    // } else {
-    //     Sconstraints.print();
-    // }
-    // std::cout << "\n";
-    //
-    // std::cout << "Sinvconstraints\n";
-    // if (Sinvconstraints.n_elem > 10) {
-    //     Sinvconstraints.rows(0, 9).print();
-    //     std::cout << "... [" << Sinvconstraints.n_elem - 10 << " more elements]" << std::endl;
-    // } else {
-    //     Sinvconstraints.print();
-    // }
-    // std::cout << "\n";
-    //
-    // std::cout << "==== END OF PARAMETERS ====" << std::endl;
+    std::cout << "==== MODEL SELECTION GIBBS CI PARAMETERS ====" << std::endl << std::endl;
+
+    // Print scalar parameters
+    std::cout << "SpostModeiniProb\n" << SpostModeiniProb << "\n\n";
+    std::cout << "Sknownphi\n" << Sknownphi << "\n\n";
+    std::cout << "Sfamily\n" << Sfamily << "\n\n";
+    std::cout << "SpriorCoef\n" << SpriorCoef << "\n\n";
+    std::cout << "SpriorGroup\n" << SpriorGroup << "\n\n";
+    std::cout << "Sniter\n" << Sniter << "\n\n";
+    std::cout << "Sthinning\n" << Sthinning << "\n\n";
+    std::cout << "Sburnin\n" << Sburnin << "\n\n";
+    std::cout << "Sndeltaini\n" << Sndeltaini << "\n\n";
+    std::cout << "Sn\n" << Sn << "\n\n";
+    std::cout << "Sp\n" << Sp << "\n\n";
+    std::cout << "Suncens\n" << Suncens << "\n\n";
+    std::cout << "Ssumy2\n" << Ssumy2 << "\n\n";
+    std::cout << "Ssumy\n" << Ssumy << "\n\n";
+    std::cout << "Ssumlogyfact\n" << Ssumlogyfact << "\n\n";
+    std::cout << "ShasXtX\n" << ShasXtX << "\n\n";
+    std::cout << "Smethod\n" << Smethod << "\n\n";
+    std::cout << "Sadjoverdisp\n" << Sadjoverdisp << "\n\n";
+    std::cout << "Shesstype\n" << Shesstype << "\n\n";
+    std::cout << "SoptimMethod\n" << SoptimMethod << "\n\n";
+    std::cout << "Soptim_maxit\n" << Soptim_maxit << "\n\n";
+    std::cout << "Susethinit\n" << Susethinit << "\n\n";
+    std::cout << "SB\n" << SB << "\n\n";
+    std::cout << "Salpha\n" << Salpha << "\n\n";
+    std::cout << "Slambda\n" << Slambda << "\n\n";
+    std::cout << "Sphi\n" << Sphi << "\n\n";
+    std::cout << "Stau\n" << Stau << "\n\n";
+    std::cout << "Staugroup\n" << Staugroup << "\n\n";
+    std::cout << "Staualpha\n" << Staualpha << "\n\n";
+    std::cout << "Sfixatanhalpha\n" << Sfixatanhalpha << "\n\n";
+    std::cout << "Sr\n" << Sr << "\n\n";
+    std::cout << "SpriorDelta\n" << SpriorDelta << "\n\n";
+    std::cout << "SprDeltap\n" << SprDeltap << "\n\n";
+    std::cout << "SparprDeltap\n" << SparprDeltap << "\n\n";
+    std::cout << "SpriorConstr\n" << SpriorConstr << "\n\n";
+    std::cout << "SprConstrp\n" << SprConstrp << "\n\n";
+    std::cout << "SparprConstrp\n" << SparprConstrp << "\n\n";
+    std::cout << "Sngroups\n" << Sngroups << "\n\n";
+    std::cout << "Sverbose\n" << Sverbose << "\n\n";
+
+    // Print vector and matrix parameters
+    std::cout << "SpostModeini\n";
+    SpostModeini.print();
+    std::cout << "\n";
+
+    std::cout << "Sdeltaini\n";
+    Sdeltaini.print();
+    std::cout << "\n";
+
+    std::cout << "Sincludevars\n";
+    Sincludevars.print();
+    std::cout << "\n";
+
+    std::cout << "Sy (first 10 elements or all if less)\n";
+    if (Sy.n_elem > 10) {
+        Sy.rows(0, 9).print();
+        std::cout << "... [" << Sy.n_elem - 10 << " more elements]" << std::endl;
+    } else {
+        Sy.print();
+    }
+    std::cout << "\n";
+
+    std::cout << "Sx (dimensions and first few elements)\n";
+    std::cout << "Dimensions: " << Sx.n_rows << " x " << Sx.n_cols << std::endl;
+    if (Sx.n_elem > 0) {
+        int print_rows = std::min(5, (int) Sx.n_rows);
+        int print_cols = std::min(5, (int) Sx.n_cols);
+        Sx.submat(0, 0, print_rows - 1, print_cols - 1).print();
+        if (Sx.n_rows > 5 || Sx.n_cols > 5) {
+            std::cout << "... [more elements]" << std::endl;
+        }
+    }
+    std::cout << "\n";
+
+    std::cout << "Scolsumsx\n";
+    if (Scolsumsx.n_elem > 10) {
+        Scolsumsx.rows(0, 9).print();
+        std::cout << "... [" << Scolsumsx.n_elem - 10 << " more elements]" << std::endl;
+    } else {
+        Scolsumsx.print();
+    }
+    std::cout << "\n";
+
+    if (ShasXtX) {
+        std::cout << "SXtX (dimensions and first few elements)\n";
+        std::cout << "Dimensions: " << SXtX.n_rows << " x " << SXtX.n_cols << std::endl;
+        if (SXtX.n_elem > 0) {
+            int print_rows = std::min(5, (int) SXtX.n_rows);
+            int print_cols = std::min(5, (int) SXtX.n_cols);
+            SXtX.submat(0, 0, print_rows - 1, print_cols - 1).print();
+            if (SXtX.n_rows > 5 || SXtX.n_cols > 5) {
+                std::cout << "... [more elements]" << std::endl;
+            }
+        }
+    } else {
+        std::cout << "SXtX\nNot used (ShasXtX is false)\n";
+    }
+    std::cout << "\n";
+
+    std::cout << "SytX\n";
+    if (SytX.n_elem > 10) {
+        SytX.cols(0, 9).print();
+        std::cout << "... [" << SytX.n_elem - 10 << " more elements]" << std::endl;
+    } else {
+        SytX.print();
+    }
+    std::cout << "\n";
+
+    std::cout << "Sthinit\n";
+    if (Sthinit.n_elem > 10) {
+        Sthinit.rows(0, 9).print();
+        std::cout << "... [" << Sthinit.n_elem - 10 << " more elements]" << std::endl;
+    } else {
+        Sthinit.print();
+    }
+    std::cout << "\n";
+
+    std::cout << "Sgroups (first 10 elements or all if less)\n";
+    for (int i = 0; i < std::min(10, Sngroups); i++) {
+        std::cout << Sgroups[i] << " ";
+    }
+    if (Sngroups > 10) {
+        std::cout << "... [" << Sngroups - 10 << " more elements]";
+    }
+    std::cout << "\n\n";
+
+    std::cout << "Snvaringroup\n";
+    if (Snvaringroup.n_elem > 10) {
+        Snvaringroup.rows(0, 9).print();
+        std::cout << "... [" << Snvaringroup.n_elem - 10 << " more elements]" << std::endl;
+    } else {
+        Snvaringroup.print();
+    }
+    std::cout << "\n";
+
+    std::cout << "Sconstraints\n";
+    if (Sconstraints.n_elem > 10) {
+        Sconstraints.rows(0, 9).print();
+        std::cout << "... [" << Sconstraints.n_elem - 10 << " more elements]" << std::endl;
+    } else {
+        Sconstraints.print();
+    }
+    std::cout << "\n";
+
+    std::cout << "Sinvconstraints\n";
+    if (Sinvconstraints.n_elem > 10) {
+        Sinvconstraints.rows(0, 9).print();
+        std::cout << "... [" << Sinvconstraints.n_elem - 10 << " more elements]" << std::endl;
+    } else {
+        Sinvconstraints.print();
+    }
+    std::cout << "\n";
+
+    std::cout << "==== END OF PARAMETERS ====" << std::endl;
 }
 
 // Example of how to use this inside the modelSelection function
@@ -774,13 +774,14 @@ namespace MombfBridge {
 
         // Set tolerance and alpha for coordinate descent
         double tolerance = 0.001;
-        double alpha     = 0.01; // This corresponds to the regularization strength
+        double alpha     = 1; // This corresponds to the regularization strength
+
 
         // Run cyclical coordinate descent to get the weights
         double *weights = lasso.cyclicalCoordinateDescent(tolerance, alpha);
 
         // Convert the result (double*) to arma::vec
-        arma::vec arma_weights(weights, p, false, true);
+        arma::vec arma_weights(weights, p, true, true);
 
         // Clean up the dynamically allocated weights array
         delete[] weights;
@@ -818,6 +819,8 @@ namespace MombfBridge {
                 usethinit = 3;
             }
             thinit = initParameters(y, x, family, initpar_type);
+
+
             // Passing an empty string as initpar to match the original logic for missing/auto
         }
 
@@ -1055,7 +1058,7 @@ namespace MombfBridge {
         int prDelta = 1;
 
         // TODO INVESTIGATION NEEDED
-        prDelta = 2;
+        // prDelta = 2;
 
         /* -------------------------------- prDeltap -------------------------------- */
         // Parameter priorDelta@priorPars[["p"]]
@@ -1069,7 +1072,7 @@ namespace MombfBridge {
         int prConstr = 1;
 
         // TODO INVESTIGATION NEEDED
-        prConstr = 2;
+        // prConstr = 2;
 
         /* ------------------------------- prConstrp -------------------------------- */
         // priorConstraints < -defaultpriorConstraints(priorDelta)
@@ -1107,61 +1110,61 @@ namespace MombfBridge {
         // Has to be set to 0 otherwise some mombf code (calling Rprintf?) segfaults
         int verbose = 0;
 
-        std::cout << "Printing all parameters before calling modelSelectionGibbsCI:" << std::endl;
-        printModelSelectionParameters(
-            postMode,
-            postModeProb,
-            knownphi,
-            familyint,
-            prior,
-            priorgr,
-            niter,
-            thinning,
-            burnin,
-            ndeltaini,
-            deltaini,
-            includevars,
-            n,
-            p,
-            ystd,
-            uncens,
-            sumy2,
-            sumy,
-            sumlogyfact,
-            xstd,
-            colsumsx,
-            hasXtX,
-            XtX,
-            ytX,
-            method,
-            adj_overdisp,
-            hesstype,
-            optimMethod,
-            optim_maxit,
-            thinit,
-            usethinit,
-            B,
-            alpha,
-            lambda,
-            phi,
-            tau,
-            taugroup,
-            taualpha,
-            fixatanhalpha,
-            r,
-            prDelta,
-            prDeltap,
-            parprDeltap,
-            prConstr,
-            prConstrp,
-            parprConstrp,
-            groups.memptr(),
-            ngroups,
-            nvaringroup,
-            constraints,
-            invconstraints,
-            verbose
-        );
+        // std::cout << "Printing all parameters before calling modelSelectionGibbsCI:" << std::endl;
+        // printModelSelectionParameters(
+        //     postMode,
+        //     postModeProb,
+        //     knownphi,
+        //     familyint,
+        //     prior,
+        //     priorgr,
+        //     niter,
+        //     thinning,
+        //     burnin,
+        //     ndeltaini,
+        //     deltaini,
+        //     includevars,
+        //     n,
+        //     p,
+        //     ystd,
+        //     uncens,
+        //     sumy2,
+        //     sumy,
+        //     sumlogyfact,
+        //     xstd,
+        //     colsumsx,
+        //     hasXtX,
+        //     XtX,
+        //     ytX,
+        //     method,
+        //     adj_overdisp,
+        //     hesstype,
+        //     optimMethod,
+        //     optim_maxit,
+        //     thinit,
+        //     usethinit,
+        //     B,
+        //     alpha,
+        //     lambda,
+        //     phi,
+        //     tau,
+        //     taugroup,
+        //     taualpha,
+        //     fixatanhalpha,
+        //     r,
+        //     prDelta,
+        //     prDeltap,
+        //     parprDeltap,
+        //     prConstr,
+        //     prConstrp,
+        //     parprConstrp,
+        //     groups.memptr(),
+        //     ngroups,
+        //     nvaringroup,
+        //     constraints,
+        //     invconstraints,
+        //     verbose
+        // );
 
         arma::Col<int> output = modelSelectionGibbsCI(postMode,
                                                       postModeProb,
@@ -1218,6 +1221,118 @@ namespace MombfBridge {
 
 
         return output;
+    }
+
+    // Added thinit to avoid re-initalization every iteration
+    void rnlpPost_lm(double *ans, int niter, int burnin, int thinning, double *y, double *x, int n, int p, int r,
+                     double tau, double a_phi, double b_phi, int prior, arma::dvec &thinit, bool use_thinit,
+                     double phiinit, bool use_phiinit) {
+        bool posdef;
+        int i, j, k, isave, nsave;
+        double *m, *mortho, *alpha, **S, **Sinv, **cholSinv, **inv_cholSinv, **K, **D, tauinv = 1.0 / tau, *Xty, *thcur,
+                phicur, phinew, sqrtphi, th2sum, th2invsum, apost, bpost, *linpred, ssr;
+        //Pre-compute stuff
+        nsave        = (int) floor((niter - burnin + .0) / (thinning + .0));
+        m            = dvector(1, p);
+        mortho       = dvector(1, p);
+        alpha        = dvector(1, p);
+        thcur        = dvector(1, p);
+        linpred      = dvector(0, n - 1);
+        S            = dmatrix(1, p, 1, p);
+        Sinv         = dmatrix(1, p, 1, p);
+        cholSinv     = dmatrix(1, p, 1, p);
+        inv_cholSinv = dmatrix(1, p, 1, p);
+        K            = dmatrix(1, p, 1, p);
+        D            = dmatrix(1, p, 1, p);
+
+        AvectBvec(x, n, p, x, n, p, S); //S= t(x) %*% x + 1/tau
+        for (i = 1; i <= p; i++) S[i][i] += tauinv;
+        inv_posdef(S, p, Sinv, &posdef);
+        choldc(Sinv, p, cholSinv, &posdef);
+        choldc_inv(Sinv, p, inv_cholSinv, &posdef); //inverse of chol(Sinv)
+
+        Xty = dvector(1, p);
+        Atvecx(x, y, Xty + 1, 0, p - 1, 0, n - 1); //m= solve(S) %*% t(x) %*% y
+        Ax(Sinv, Xty, m, 1, p, 1, p);
+        Ax(inv_cholSinv, m, mortho, 1, p, 1, p);
+        free_dvector(Xty, 1, p);
+
+        if (prior == 0) apost = .5 * (a_phi + n + 3 * p);
+        else if (prior == 1) apost = .5 * (a_phi + n - p);
+        else apost                 = .5 * (a_phi + n + p);
+        //Initialize
+        th2sum = 0;
+        phicur = sqrtphi = 1.0;
+
+        if (!use_thinit) {
+            for (j = 1; j <= p; j++) {
+                thcur[j] = m[j];
+                th2sum += thcur[j] * thcur[j];
+            }
+        } else {
+            // TODO can we get rid of loop?
+            // -1 because thinit is arma vec with 0 based index
+            for (j = 1; j <= p; j++) {
+                thcur[j] = thinit[j - 1];
+                th2sum += thcur[j] * thcur[j];
+            }
+        }
+
+        // std::cout << "thinit:\n" << thinit << std::endl;
+
+        //Ax(cholSinv, thcur, Dthcur, 1, p, 1, p);
+        isave = 0;
+        for (i = 1; i <= niter; i++) {
+            //for (j=1; j<=p; j++) Dthcur[j] = Dthcur[j] / sqrtphi;
+            Avecx(x, thcur + 1, linpred, 0, n - 1, 0, p - 1);
+            ssr = 0;
+            for (j = 0; j < n; j++) ssr += pow(y[j] - linpred[j], 2.0);
+            if (!use_phiinit) {
+                if (prior == 0) {
+                    bpost   = .5 * (b_phi + th2sum / tau + ssr);
+                    phicur  = 1.0 / rgammaC(apost, bpost);
+                    sqrtphi = sqrt(phicur);
+                } else {
+                    if (prior == 1) bpost = .5 * (b_phi + ssr);
+                    else bpost            = .5 * (b_phi + th2sum / tau + ssr);
+                    phinew    = 1.0 / rgammaC(apost, bpost);
+                    th2invsum = 0;
+                    for (j = 1; j <= p; j++) th2invsum += 1 / (thcur[j] * thcur[j]);
+                    if (runif() < exp((phicur - phinew) * tau * th2invsum)) {
+                        phicur  = phinew;
+                        sqrtphi = sqrt(phicur);
+                    }
+                }
+            } else {
+                phicur  = phiinit;
+                sqrtphi = sqrt(phicur);
+            }
+            for (j = 1; j <= p; j++) {
+                alpha[j] = mortho[j] / sqrtphi;
+                //Dthcur[j]= Dthcur[j] * sqrtphi;
+                for (k = 1; k <= j; k++) {
+                    D[j][k] = cholSinv[j][k] * sqrtphi;
+                    K[j][k] = inv_cholSinv[j][k] / sqrtphi;
+                }
+            }
+            rnlp_Gibbs(thcur, p, alpha, D, K, &tau, &phicur, r, prior);
+            if (i > burnin && ((i - burnin) % thinning) == 0) {
+                for (j = 1; j <= p; j++) ans[isave + (j - 1) * nsave] = thcur[j];
+                ans[isave + p * nsave] = phicur;
+                isave++;
+            }
+        }
+        free_dvector(m, 1, p);
+        free_dvector(mortho, 1, p);
+        free_dvector(alpha, 1, p);
+        free_dvector(thcur, 1, p);
+        free_dvector(linpred, 0, n - 1);
+        free_dmatrix(S, 1, p, 1, p);
+        free_dmatrix(Sinv, 1, p, 1, p);
+        free_dmatrix(cholSinv, 1, p, 1, p);
+        free_dmatrix(inv_cholSinv, 1, p, 1, p);
+        free_dmatrix(K, 1, p, 1, p);
+        free_dmatrix(D, 1, p, 1, p);
     }
 }
 #endif //MOMBF_BRIDGE_H

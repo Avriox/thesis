@@ -5,6 +5,17 @@
 
 #define DEBUG_PRINTING // Print some additional debug info. Comment to disable.
 
+
+// info
+//
+// Werden in jedem loop überschrieben
+// s2_i
+// b_i
+// w_i
+//
+// Bleiben Konstant
+//
+
 int main() {
     /* -------------------------------------------------------------------------- */
     /*                               Variable Setup                               */
@@ -54,6 +65,7 @@ int main() {
     double vb           = 1.0;
     double tau          = 1.0;
     bool geweke         = false;
+    bool use_phiinit    = true;
 
     /* ----------------------------- Generate Data ------------------------------ */
 
@@ -287,8 +299,10 @@ int main() {
 
     arma::vec b_i(p, arma::fill::ones);
     arma::vec g_i(r, arma::fill::zeros);
-    arma::vec g_incl_i = g_i; // always non zero for rnlp within Gibbs; last value conditional on inclusion
-    double s2_i        = 1.0;
+    // Init g_incl_i using ridge regression to avoide zeros in the first iteration (invalid starting position)
+    arma::vec g_incl_i = (Z.t() * Z + 10 * arma::eye(r, r)).i() * Z.t() * y;
+
+    double s2_i = 1.0;
 
     arma::Col<int> w_i(r, arma::fill::zeros);
 
@@ -416,10 +430,10 @@ int main() {
         }
 
         /* --------------------------- draw p(s2|a,b,g,y) --------------------------- */
-        double CN = C0 + 0.5 * arma::sum(arma::square(y - X * b_i - Z * g_i));
-        s2_i      = 1.0 / arma::randg(arma::distr_param(cN, 1.0 / CN)); // 1.0 / CN -> rate = 1/scale
-
-        // s2_i = sqrt(2);
+        if (use_phiinit) {
+            double CN = C0 + 0.5 * arma::sum(arma::square(y - X * b_i - Z * g_i));
+            s2_i      = 1.0 / arma::randg(arma::distr_param(cN, 1.0 / CN)); // 1.0 / CN -> rate = 1/scale
+        }
 
         /* --------------------------- draw p(b|a,g,s2,y) --------------------------- */
         if (b_prior == "hs") {
@@ -497,10 +511,9 @@ int main() {
         if (iter == 1 - Nburn) {
             initpar_type = MombfBridge::Auto;
         } else {
-            thinit = g_i;
+            thinit = g_incl_i;
         }
 
-        std::cout << y_hat << std::endl;
 
         arma::Col<int> post_sample = MombfBridge::modelSelection(y_hat,
                                                                  Z,
@@ -521,14 +534,6 @@ int main() {
 
 
         w_i = post_sample;
-
-        // arma::vec w_i_mod_postSample(r);
-        // if (iter == 1 - Nburn) {
-        //     w_i_mod_postSample.zeros(); // Placeholder initialization
-        // } else {
-        //     w_i_mod_postSample.ones(); // Another placeholder
-        // }
-        // w_i = w_i_mod_postSample;
 
 
         if (geweke) {
@@ -562,21 +567,34 @@ int main() {
 
             // Filtered Z -> Nur die spalten wo w_i == 1
 
+            bool use_thinit = false;
+            if (iter > 1 - Nburn) {
+                use_thinit = true;
+                // use_phiinit = true;
+            }
 
-            rnlpPost_lm(ans.memptr(),
-                        5,
-                        4,
-                        1,
-                        y_hat.memptr(),
-                        filteredZ.memptr(),
-                        y_hat.size(),
-                        filteredZ.n_cols,
-                        1,
-                        tau_b,
-                        c0,
-                        C0,
-                        1);
+            MombfBridge::rnlpPost_lm(ans.memptr(),
+                                     1,
+                                     0,
+                                     1,
+                                     y_hat.memptr(),
+                                     filteredZ.memptr(),
+                                     y_hat.size(),
+                                     filteredZ.n_cols,
+                                     1,
+                                     tau_b,
+                                     c0,
+                                     C0,
+                                     1,
+                                     g_incl_i,
+                                     use_thinit,
+                                     s2_i,
+                                     use_phiinit);
 
+
+            if (use_phiinit == false) {
+                s2_i = ans(nonZeroCount);
+            }
 
             // arma::vec g_i = arma::vec().zeros(w_i.n_elem);
             //
@@ -590,7 +608,8 @@ int main() {
             //     }
             // }
 
-            arma::vec g_i = arma::vec().zeros(w_i.n_elem);
+
+            g_i = arma::vec().zeros(w_i.n_elem);
 
             int ans_pos = 0; // Position tracker for the ans vector
             for (int i = 0; i < w_i.n_elem; ++i) {
@@ -602,13 +621,12 @@ int main() {
                 }
                 // When w_i is 0, g_i stays 0 (already initialized that way)
             }
+
+            // std::cout << "w_i:\n" << w_i << std::endl;
+            // std::cout << "g_i:\n" << g_i << std::endl;
         } else {
             g_i.zeros(r);
         }
-
-        // TODO
-        g_i.zeros(r);
-        // g_i(7) = 10;
 
         // TODO is this a correct nan check?
         if (!arma::find_nan(g_i).is_empty()) {
