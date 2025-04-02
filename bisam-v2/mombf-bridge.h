@@ -10,241 +10,11 @@
 #include "mombf/mombf/src/modelSel_regression.h"
 
 
-// Print function to display all parameters for modelSelectionGibbsCI
-void printModelSelectionParameters(
-    const arma::vec &SpostModeini,
-    double SpostModeiniProb,
-    int Sknownphi,
-    int Sfamily,
-    int SpriorCoef,
-    int SpriorGroup,
-    int Sniter,
-    int Sthinning,
-    int Sburnin,
-    int Sndeltaini,
-    arma::Col<int> &Sdeltaini,
-    arma::Col<int> &Sincludevars,
-    int Sn,
-    int Sp,
-    arma::vec &Sy,
-    int Suncens,
-    double Ssumy2,
-    double Ssumy,
-    double Ssumlogyfact,
-    arma::mat &Sx,
-    arma::vec &Scolsumsx,
-    bool ShasXtX,
-    arma::mat &SXtX,
-    arma::rowvec &SytX,
-    int Smethod,
-    int Sadjoverdisp,
-    int Shesstype,
-    int SoptimMethod,
-    int Soptim_maxit,
-    arma::vec Sthinit,
-    int Susethinit,
-    int SB,
-    double Salpha,
-    double Slambda,
-    double Sphi,
-    double Stau,
-    double Staugroup,
-    double Staualpha,
-    double Sfixatanhalpha,
-    int Sr,
-    int SpriorDelta,
-    double SprDeltap,
-    double SparprDeltap,
-    int SpriorConstr,
-    double SprConstrp,
-    double SparprConstrp,
-    int *Sgroups,
-    int Sngroups,
-    arma::Col<int> &Snvaringroup,
-    arma::ivec &Sconstraints,
-    arma::ivec &Sinvconstraints,
-    int Sverbose) {
-    std::cout << "==== MODEL SELECTION GIBBS CI PARAMETERS ====" << std::endl << std::endl;
-
-    // Print scalar parameters
-    std::cout << "SpostModeiniProb\n" << SpostModeiniProb << "\n\n";
-    std::cout << "Sknownphi\n" << Sknownphi << "\n\n";
-    std::cout << "Sfamily\n" << Sfamily << "\n\n";
-    std::cout << "SpriorCoef\n" << SpriorCoef << "\n\n";
-    std::cout << "SpriorGroup\n" << SpriorGroup << "\n\n";
-    std::cout << "Sniter\n" << Sniter << "\n\n";
-    std::cout << "Sthinning\n" << Sthinning << "\n\n";
-    std::cout << "Sburnin\n" << Sburnin << "\n\n";
-    std::cout << "Sndeltaini\n" << Sndeltaini << "\n\n";
-    std::cout << "Sn\n" << Sn << "\n\n";
-    std::cout << "Sp\n" << Sp << "\n\n";
-    std::cout << "Suncens\n" << Suncens << "\n\n";
-    std::cout << "Ssumy2\n" << Ssumy2 << "\n\n";
-    std::cout << "Ssumy\n" << Ssumy << "\n\n";
-    std::cout << "Ssumlogyfact\n" << Ssumlogyfact << "\n\n";
-    std::cout << "ShasXtX\n" << ShasXtX << "\n\n";
-    std::cout << "Smethod\n" << Smethod << "\n\n";
-    std::cout << "Sadjoverdisp\n" << Sadjoverdisp << "\n\n";
-    std::cout << "Shesstype\n" << Shesstype << "\n\n";
-    std::cout << "SoptimMethod\n" << SoptimMethod << "\n\n";
-    std::cout << "Soptim_maxit\n" << Soptim_maxit << "\n\n";
-    std::cout << "Susethinit\n" << Susethinit << "\n\n";
-    std::cout << "SB\n" << SB << "\n\n";
-    std::cout << "Salpha\n" << Salpha << "\n\n";
-    std::cout << "Slambda\n" << Slambda << "\n\n";
-    std::cout << "Sphi\n" << Sphi << "\n\n";
-    std::cout << "Stau\n" << Stau << "\n\n";
-    std::cout << "Staugroup\n" << Staugroup << "\n\n";
-    std::cout << "Staualpha\n" << Staualpha << "\n\n";
-    std::cout << "Sfixatanhalpha\n" << Sfixatanhalpha << "\n\n";
-    std::cout << "Sr\n" << Sr << "\n\n";
-    std::cout << "SpriorDelta\n" << SpriorDelta << "\n\n";
-    std::cout << "SprDeltap\n" << SprDeltap << "\n\n";
-    std::cout << "SparprDeltap\n" << SparprDeltap << "\n\n";
-    std::cout << "SpriorConstr\n" << SpriorConstr << "\n\n";
-    std::cout << "SprConstrp\n" << SprConstrp << "\n\n";
-    std::cout << "SparprConstrp\n" << SparprConstrp << "\n\n";
-    std::cout << "Sngroups\n" << Sngroups << "\n\n";
-    std::cout << "Sverbose\n" << Sverbose << "\n\n";
-
-    // Print vector and matrix parameters
-    std::cout << "SpostModeini\n";
-    SpostModeini.print();
-    std::cout << "\n";
-
-    std::cout << "Sdeltaini\n";
-    Sdeltaini.print();
-    std::cout << "\n";
-
-    std::cout << "Sincludevars\n";
-    Sincludevars.print();
-    std::cout << "\n";
-
-    std::cout << "Sy (first 10 elements or all if less)\n";
-    if (Sy.n_elem > 10) {
-        Sy.rows(0, 9).print();
-        std::cout << "... [" << Sy.n_elem - 10 << " more elements]" << std::endl;
-    } else {
-        Sy.print();
-    }
-    std::cout << "\n";
-
-    std::cout << "Sx (dimensions and first few elements)\n";
-    std::cout << "Dimensions: " << Sx.n_rows << " x " << Sx.n_cols << std::endl;
-    if (Sx.n_elem > 0) {
-        int print_rows = std::min(5, (int) Sx.n_rows);
-        int print_cols = std::min(5, (int) Sx.n_cols);
-        Sx.submat(0, 0, print_rows - 1, print_cols - 1).print();
-        if (Sx.n_rows > 5 || Sx.n_cols > 5) {
-            std::cout << "... [more elements]" << std::endl;
-        }
-    }
-    std::cout << "\n";
-
-    std::cout << "Scolsumsx\n";
-    if (Scolsumsx.n_elem > 10) {
-        Scolsumsx.rows(0, 9).print();
-        std::cout << "... [" << Scolsumsx.n_elem - 10 << " more elements]" << std::endl;
-    } else {
-        Scolsumsx.print();
-    }
-    std::cout << "\n";
-
-    if (ShasXtX) {
-        std::cout << "SXtX (dimensions and first few elements)\n";
-        std::cout << "Dimensions: " << SXtX.n_rows << " x " << SXtX.n_cols << std::endl;
-        if (SXtX.n_elem > 0) {
-            int print_rows = std::min(5, (int) SXtX.n_rows);
-            int print_cols = std::min(5, (int) SXtX.n_cols);
-            SXtX.submat(0, 0, print_rows - 1, print_cols - 1).print();
-            if (SXtX.n_rows > 5 || SXtX.n_cols > 5) {
-                std::cout << "... [more elements]" << std::endl;
-            }
-        }
-    } else {
-        std::cout << "SXtX\nNot used (ShasXtX is false)\n";
-    }
-    std::cout << "\n";
-
-    std::cout << "SytX\n";
-    if (SytX.n_elem > 10) {
-        SytX.cols(0, 9).print();
-        std::cout << "... [" << SytX.n_elem - 10 << " more elements]" << std::endl;
-    } else {
-        SytX.print();
-    }
-    std::cout << "\n";
-
-    std::cout << "Sthinit\n";
-    if (Sthinit.n_elem > 10) {
-        Sthinit.rows(0, 9).print();
-        std::cout << "... [" << Sthinit.n_elem - 10 << " more elements]" << std::endl;
-    } else {
-        Sthinit.print();
-    }
-    std::cout << "\n";
-
-    std::cout << "Sgroups (first 10 elements or all if less)\n";
-    for (int i = 0; i < std::min(10, Sngroups); i++) {
-        std::cout << Sgroups[i] << " ";
-    }
-    if (Sngroups > 10) {
-        std::cout << "... [" << Sngroups - 10 << " more elements]";
-    }
-    std::cout << "\n\n";
-
-    std::cout << "Snvaringroup\n";
-    if (Snvaringroup.n_elem > 10) {
-        Snvaringroup.rows(0, 9).print();
-        std::cout << "... [" << Snvaringroup.n_elem - 10 << " more elements]" << std::endl;
-    } else {
-        Snvaringroup.print();
-    }
-    std::cout << "\n";
-
-    std::cout << "Sconstraints\n";
-    if (Sconstraints.n_elem > 10) {
-        Sconstraints.rows(0, 9).print();
-        std::cout << "... [" << Sconstraints.n_elem - 10 << " more elements]" << std::endl;
-    } else {
-        Sconstraints.print();
-    }
-    std::cout << "\n";
-
-    std::cout << "Sinvconstraints\n";
-    if (Sinvconstraints.n_elem > 10) {
-        Sinvconstraints.rows(0, 9).print();
-        std::cout << "... [" << Sinvconstraints.n_elem - 10 << " more elements]" << std::endl;
-    } else {
-        Sinvconstraints.print();
-    }
-    std::cout << "\n";
-
-    std::cout << "==== END OF PARAMETERS ====" << std::endl;
-}
-
-// Example of how to use this inside the modelSelection function
-// Just add this line before calling modelSelectionGibbsCI:
-
-/*
-printModelSelectionParameters(
-    postMode, postModeProb, knownphi, familyint, prior, priorgr,
-    niter, thinning, burnin, ndeltaini, deltaini, includevars,
-    n, p, ystd, uncens, sumy2, sumy, sumlogyfact,
-    xstd, colsumsx, hasXtX, XtX, ytX, method, adj_overdisp,
-    hesstype, optimMethod, optim_maxit, thinit, usethinit,
-    B, alpha, lambda, phi, tau, taugroup, taualpha,
-    fixatanhalpha, r, prDelta, prDeltap, parprDeltap,
-    prConstr, prConstrp, parprConstrp, groups.memptr(),
-    ngroups, nvaringroup, constraints, invconstraints, verbose
-);
-*/
-
-
 namespace MombfBridge {
     /* ---------------------------- countConstraints ---------------------------- */
     // Since count constraints in mombf accepts FOR WHATEVER REASON SEXP objects and we are not using them,
-    // we need a version without them.
+    // we need a version without them. Other than that this should be an almost 1 to 1 translation of the
+    // original function
 
     void countConstraints(int *nconstraints,
                           intptrvec *constraints,
@@ -257,7 +27,6 @@ namespace MombfBridge {
                           arma::ivec &Sconstraints,
                           arma::ivec &Sinvconstraints) {
         /*Count number of constraints, number of groups with constraints, determine which variables are in a group*/
-
         int i, j, jj;
         int offset_constraints    = 0;
         int offset_invconstraints = 0;
@@ -335,6 +104,8 @@ namespace MombfBridge {
     // prepares the R (SEXP) objects for use with cpp. Since we already have the cpp objects ready not much
     // is needed here. We mainly make sure all our parameters are in a form to call modelSelectionGibbs.
 
+    // This is an "output object" for modelSelectionGibbsCI mimicing what the original version outputs,
+    // but since we are now only returning postSample this is kind of redundant now. I have to keep it for now doe.
     struct GibbsOutput {
         int *postSample;
         double *margpp;
@@ -460,7 +231,8 @@ namespace MombfBridge {
         isgroup         = ivector(0, Sp);
         nconstraints    = ivector(0, Sngroups);
         ninvconstraints = ivector(0, Sngroups);
-        // TODO this is quite annoying since it uses SEXP objects which we do not have! Bridge needed
+
+        // This is our modified version of countConstraints which takes cpp objects instead of SEXP
         countConstraints(nconstraints,
                          &constraints,
                          ninvconstraints,
@@ -542,146 +314,6 @@ namespace MombfBridge {
 
         priorcode      = mspriorCode(&SpriorCoef, &SpriorGroup, &pars);
         pars.priorcode = &priorcode;
-
-
-        // // --- Debugging Print Statements ---
-        // std::cout << "--- Parameters for modelSelectionGibbs ---" << std::endl;
-        //
-        // std::cout << "postSample (first 10 elements): ";
-        // for (int k = 0; k < std::min(10, mcmc2save * mycols); ++k) {
-        //     std::cout << postSample[k] << " ";
-        // }
-        // std::cout << (mcmc2save * mycols > 10 ? "..." : "") << std::endl;
-        // std::cout << "Dimensions of postSample: " << mcmc2save << " x " << mycols << std::endl;
-        //
-        // std::cout << "margpp: ";
-        // for (int k = 0; k < mycols2; ++k) {
-        //     std::cout << margpp[k] << " ";
-        // }
-        // std::cout << std::endl;
-        // std::cout << "Length of margpp: " << mycols2 << std::endl;
-        //
-        // std::cout << "postMode: ";
-        // for (int k = 0; k < mycols; ++k) {
-        //     std::cout << postMode[k] << " ";
-        // }
-        // std::cout << std::endl;
-        // std::cout << "Length of postMode: " << mycols << std::endl;
-        //
-        // std::cout << "postModeProb: " << postModeProb[0] << std::endl;
-        //
-        // std::cout << "postProb (first 10 elements): ";
-        // for (int k = 0; k < std::min(10, mcmc2save); ++k) {
-        //     std::cout << postProb[k] << " ";
-        // }
-        // std::cout << (mcmc2save > 10 ? "..." : "") << std::endl;
-        // std::cout << "Length of postProb: " << mcmc2save << std::endl;
-        //
-        // std::cout << "priorDelta: " << SpriorDelta << std::endl;
-        // std::cout << "priorConstr: " << SpriorConstr << std::endl;
-        // std::cout << "niter: " << Sniter << std::endl;
-        // std::cout << "thinning: " << Sthinning << std::endl;
-        // std::cout << "burnin: " << Sburnin << std::endl;
-        // std::cout << "ndeltaini: " << Sndeltaini << std::endl;
-        //
-        // std::cout << "deltaini: ";
-        // for (int k = 0; k < Sdeltaini.n_elem; ++k) {
-        //     std::cout << Sdeltaini(k) << " ";
-        // }
-        // std::cout << std::endl;
-        // std::cout << "Length of deltaini: " << Sdeltaini.n_elem << std::endl;
-        //
-        // std::cout << "includevars: ";
-        // for (int k = 0; k < Sincludevars.n_elem; ++k) {
-        //     std::cout << static_cast<int>(Sincludevars(k)) << " ";
-        // }
-        // std::cout << std::endl;
-        // std::cout << "Length of includevars: " << Sincludevars.n_elem << std::endl;
-        //
-        // std::cout << "constraints (first level pointers): " << constraints.size() << std::endl;
-        // std::cout << "invconstraints (first level pointers): " << invconstraints.size() << std::endl;
-        //
-        // std::cout << "verbose: " << Sverbose << std::endl;
-        //
-        // std::cout << "--- Parameters of pars struct ---" << std::endl;
-        // std::cout << "pars.family: " << *(pars.family) << std::endl;
-        // std::cout << "pars.n: " << *(pars.n) << std::endl;
-        // std::cout << "pars.nuncens: " << *(pars.nuncens) << std::endl;
-        // std::cout << "pars.p: " << *(pars.p) << std::endl;
-        // std::cout << "pars.y (first 10 elements): ";
-        // for (int k = 0; k < std::min(10, *(pars.n)); ++k) std::cout << pars.y[k] << " ";
-        // std::cout << (*(pars.n) > 10 ? "..." : "") << std::endl;
-        // std::cout << "pars.uncens: " << *(pars.uncens) << std::endl;
-        // std::cout << "pars.sumy2: " << *(pars.sumy2) << std::endl;
-        // std::cout << "pars.sumy: " << *(pars.sumy) << std::endl;
-        // std::cout << "pars.sumlogyfact: " << *(pars.sumlogyfact) << std::endl;
-        // std::cout << "pars.x (first 10 elements): ";
-        // for (int k = 0; k < std::min(10, (*(pars.n) * *(pars.p))); ++k) std::cout << pars.x[k] << " ";
-        // std::cout << ((*(pars.n) * *(pars.p)) > 10 ? "..." : "") << std::endl;
-        // std::cout << "pars.colsumsx (first " << *(pars.p) << " elements): ";
-        // for (int k = 0; k < *(pars.p); ++k) std::cout << pars.colsumsx[k] << " ";
-        // std::cout << std::endl;
-        // std::cout << "pars.XtX: (printing address) " << pars.XtX << std::endl;
-        // std::cout << "pars.ytX (first " << *(pars.p) << " elements): ";
-        // for (int k = 0; k < *(pars.p); ++k) std::cout << pars.ytX[k] << " ";
-        // std::cout << std::endl;
-        // std::cout << "pars.method: " << *(pars.method) << std::endl;
-        // std::cout << "pars.adjoverdisp: " << *(pars.adjoverdisp) << std::endl;
-        // std::cout << "pars.hesstype: " << *(pars.hesstype) << std::endl;
-        // std::cout << "pars.optimMethod: " << *(pars.optimMethod) << std::endl;
-        // std::cout << "pars.optim_maxit: " << *(pars.optim_maxit) << std::endl;
-        // std::cout << "pars.usethinit: " << *(pars.usethinit) << std::endl;
-        // std::cout << "pars.thinit (first 10 elements): ";
-        // for (int k = 0; k < std::min(50, mycols2 + 2); ++k) std::cout << pars.thinit[k] << " ";
-        // std::cout << (mycols2 + 2 > 10 ? "..." : "") << std::endl;
-        // std::cout << "pars.B: " << *(pars.B) << std::endl;
-        // std::cout << "pars.alpha: " << *(pars.alpha) << std::endl;
-        // std::cout << "pars.lambda: " << *(pars.lambda) << std::endl;
-        // std::cout << "pars.knownphi: " << *(pars.knownphi) << std::endl;
-        // std::cout << "pars.phi: " << *(pars.phi) << std::endl;
-        // std::cout << "pars.tau: " << *(pars.tau) << std::endl;
-        // std::cout << "pars.taugroup: " << *(pars.taugroup) << std::endl;
-        // std::cout << "pars.taualpha: " << *(pars.taualpha) << std::endl;
-        // std::cout << "pars.fixatanhalpha: " << *(pars.fixatanhalpha) << std::endl;
-        // std::cout << "pars.r: " << *(pars.r) << std::endl;
-        // std::cout << "pars.prDeltap: " << *(pars.prDeltap) << std::endl;
-        // std::cout << "pars.parprDeltap: " << *(pars.parprDeltap) << std::endl;
-        // std::cout << "pars.prConstrp: " << *(pars.prConstrp) << std::endl;
-        // std::cout << "pars.parprConstrp: " << *(pars.parprConstrp) << std::endl;
-        // std::cout << "pars.logscale: " << *(pars.logscale) << std::endl;
-        // std::cout << "pars.offset: " << *(pars.offset) << std::endl;
-        // std::cout << "pars.groups (first " << Sngroups << " elements): ";
-        // if (pars.groups != nullptr) {
-        //     for (int k = 0; k < Sngroups; ++k) std::cout << pars.groups[k] << " ";
-        //     std::cout << std::endl;
-        // } else {
-        //     std::cout << "NULL" << std::endl;
-        // }
-        // std::cout << "pars.isgroup (first " << Sp << " elements): ";
-        // for (int k = 0; k < Sp; ++k) std::cout << pars.isgroup[k] << " ";
-        // std::cout << std::endl;
-        // std::cout << "pars.ngroups: " << *(pars.ngroups) << std::endl;
-        // std::cout << "pars.ngroupsconstr: " << *(pars.ngroupsconstr) << std::endl;
-        // std::cout << "pars.nvaringroup (first " << Sngroups << " elements): ";
-        // for (int k = 0; k < Sngroups; ++k) std::cout << static_cast<int>(Snvaringroup(k)) << " ";
-        // std::cout << std::endl;
-        // std::cout << "pars.nconstraints (first " << Sngroups << " elements): ";
-        // for (int k = 0; k < Sngroups; ++k) std::cout << pars.nconstraints[k] << " ";
-        // std::cout << std::endl;
-        // std::cout << "pars.ninvconstraints (first " << Sngroups << " elements): ";
-        // for (int k = 0; k < Sngroups; ++k) std::cout << pars.ninvconstraints[k] << " ";
-        // std::cout << std::endl;
-        // std::cout << "pars.XtXuncens: (printing address) " << pars.XtXuncens << std::endl;
-        // std::cout << "pars.ytXuncens (first " << Sp << " elements): ";
-        // if (pars.ytXuncens != nullptr) {
-        //     for (int k = 0; k < Sp; ++k) std::cout << pars.ytXuncens[k] << " ";
-        //     std::cout << std::endl;
-        // } else {
-        //     std::cout << "NULL" << std::endl;
-        // }
-        // std::cout << "pars.priorcode: " << *(pars.priorcode) << std::endl;
-        //
-        // // --- End of Debugging Print Statements ---
 
 
         modelSelectionGibbs(postSample,
@@ -1109,62 +741,6 @@ namespace MombfBridge {
         /* -------------------------------- verbose --------------------------------- */
         // Has to be set to 0 otherwise some mombf code (calling Rprintf?) segfaults
         int verbose = 0;
-
-        // std::cout << "Printing all parameters before calling modelSelectionGibbsCI:" << std::endl;
-        // printModelSelectionParameters(
-        //     postMode,
-        //     postModeProb,
-        //     knownphi,
-        //     familyint,
-        //     prior,
-        //     priorgr,
-        //     niter,
-        //     thinning,
-        //     burnin,
-        //     ndeltaini,
-        //     deltaini,
-        //     includevars,
-        //     n,
-        //     p,
-        //     ystd,
-        //     uncens,
-        //     sumy2,
-        //     sumy,
-        //     sumlogyfact,
-        //     xstd,
-        //     colsumsx,
-        //     hasXtX,
-        //     XtX,
-        //     ytX,
-        //     method,
-        //     adj_overdisp,
-        //     hesstype,
-        //     optimMethod,
-        //     optim_maxit,
-        //     thinit,
-        //     usethinit,
-        //     B,
-        //     alpha,
-        //     lambda,
-        //     phi,
-        //     tau,
-        //     taugroup,
-        //     taualpha,
-        //     fixatanhalpha,
-        //     r,
-        //     prDelta,
-        //     prDeltap,
-        //     parprDeltap,
-        //     prConstr,
-        //     prConstrp,
-        //     parprConstrp,
-        //     groups.memptr(),
-        //     ngroups,
-        //     nvaringroup,
-        //     constraints,
-        //     invconstraints,
-        //     verbose
-        // );
 
         arma::Col<int> output = modelSelectionGibbsCI(postMode,
                                                       postModeProb,

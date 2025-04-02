@@ -1,7 +1,9 @@
 #include <iostream>
 #include <armadillo>
 #include "controlled-simulation.h"
+#include "model-selection-strategy.h"
 #include "mombf-bridge.h"
+#include "exec_timer.h"
 
 #define DEBUG_PRINTING // Print some additional debug info. Comment to disable.
 
@@ -421,6 +423,8 @@ int main() {
     /* -------------------------------------------------------------------------- */
     std::cout << "Starting Gibbs Sampler" << std::endl;
 
+    FunctionTimer timer;
+    timer.start_section("Gibbs Sampler");
 
     for (int iter = 1 - Nburn; iter <= Nstore; ++iter) {
         /* ------------------------------ Geweke Test ------------------------------- */
@@ -515,23 +519,24 @@ int main() {
         }
 
 
-        arma::Col<int> post_sample = MombfBridge::modelSelection(y_hat,
-                                                                 Z,
-                                                                 nn,
-                                                                 1,
-                                                                 nn - 1,
-                                                                 w_i,
-                                                                 false,
-                                                                 false,
-                                                                 true,
-                                                                 s2_i,
-                                                                 tau,
-                                                                 0.348,
-                                                                 0.5,
-                                                                 thinit,
-                                                                 initpar_type
+        arma::Col<int> post_sample = model_selection_strategy(y_hat,
+                                                              Z,
+                                                              nn,
+                                                              1,
+                                                              nn - 1,
+                                                              w_i,
+                                                              false,
+                                                              false,
+                                                              true,
+                                                              s2_i,
+                                                              tau,
+                                                              0.348,
+                                                              0.5,
+                                                              thinit,
+                                                              initpar_type,
+                                                              ModelSelectionStrategy::SPLIT_SEQUENTIAL,
+                                                              n
         );
-
 
         w_i = post_sample;
 
@@ -647,6 +652,9 @@ int main() {
             // }
         }
     }
+    timer.end_section("Gibbs Sampler");
+
+    timer.print_section_summary();
     std::cout << "Gibbs Sampler finished." << std::endl;
 
     /* -------------------------------------------------------------------------- */
