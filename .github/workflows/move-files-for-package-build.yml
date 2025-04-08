@@ -114,7 +114,7 @@ jobs:
         ls -la
     
     - name: Check for Modified Files
-      id: check_modified
+      id: check_modified_files
       run: |
         git status --porcelain
         if [[ -n $(git status --porcelain) ]]; then
@@ -124,7 +124,7 @@ jobs:
         fi
     
     - name: Commit and Push Changes
-      if: steps.check_modified.outputs.modified == 'true'
+      if: steps.check_modified_files.outputs.modified == 'true'
       run: |
         git add .
         git commit -m "Auto-update R package structure [skip ci]"
