@@ -77,6 +77,7 @@ add_executable(bisam_v2 main.cpp
         lib/lasso/matrix.h
         model-selection-strategy.h
         exec_timer.h
+        b_ism.h
 )
 
 # Include all necessary directories
