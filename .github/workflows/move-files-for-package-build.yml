@@ -35,22 +35,41 @@ jobs:
     
     - name: Restructure Files for R Package
       run: |
-        # Create necessary directories if they don't exist
+        # Create a temporary directory
+        mkdir -p temp_build
+        
+        # Move all files from bisam_v2 to temp directory
+        echo "Moving bisam_v2 files to temporary directory"
+        cp -r bisam_v2/* temp_build/
+        
+        # Remove everything except .git, .github and temp_build
+        find . -mindepth 1 -maxdepth 1 -not -path "./.git" -not -path "./.github" -not -path "./temp_build" -exec rm -rf {} \;
+        
+        # Move everything from temp_build to root
+        echo "Moving files from temporary directory to root"
+        cp -r temp_build/* .
+        rm -rf temp_build
+        
+        # Ensure src directory exists
         mkdir -p src
         
         # Copy mombf source files to src/
-        echo "Copying mombf files"
-        cp -v mombf/mombf/src/*.cpp src/ || true
-        cp -v mombf/mombf/src/*.h src/ || true
+        echo "Copying mombf files to src/"
+        cp -v mombf/mombf/src/*.cpp src/ || echo "No mombf cpp files found"
+        cp -v mombf/mombf/src/*.h src/ || echo "No mombf header files found"
         
         # Copy lasso library files to src/
-        echo "Copying lasso files"
-        cp -v lib/lasso/*.cpp src/ || true
-        cp -v lib/lasso/*.h src/ || true
+        echo "Copying lasso files to src/"
+        cp -v lib/lasso/*.cpp src/ || echo "No lasso cpp files found"
+        cp -v lib/lasso/*.h src/ || echo "No lasso header files found"
         
         # List all files in src/ to verify
         echo "Files in src/ directory:"
         ls -la src/
+        
+        # List all files in root to verify
+        echo "Files in root directory:"
+        ls -la
     
     - name: Check for Modified Files
       id: check_modified
