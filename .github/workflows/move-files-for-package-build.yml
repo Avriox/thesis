@@ -15,6 +15,14 @@ jobs:
       with:
         fetch-depth: 0  # Fetch all history for all branches
     
+    - name: Debug Repository Structure
+      run: |
+        echo "Current directory: $(pwd)"
+        echo "Repository contents:"
+        ls -la
+        echo "--------------------"
+        find . -type d -maxdepth 3 | sort
+    
     - name: Setup Git Identity
       run: |
         git config --global user.name "GitHub Action"
@@ -35,33 +43,42 @@ jobs:
     
     - name: Restructure Files for R Package
       run: |
-        # Create a temporary directory
-        mkdir -p temp_build
-        
-        # Move all files from bisam_v2 to temp directory
-        echo "Moving bisam_v2 files to temporary directory"
-        cp -r bisam_v2/* temp_build/
-        
-        # Remove everything except .git, .github and temp_build
-        find . -mindepth 1 -maxdepth 1 -not -path "./.git" -not -path "./.github" -not -path "./temp_build" -exec rm -rf {} \;
-        
-        # Move everything from temp_build to root
-        echo "Moving files from temporary directory to root"
-        cp -r temp_build/* .
-        rm -rf temp_build
+        echo "Preparing R package structure"
         
         # Ensure src directory exists
         mkdir -p src
         
-        # Copy mombf source files to src/
-        echo "Copying mombf files to src/"
-        cp -v mombf/mombf/src/*.cpp src/ || echo "No mombf cpp files found"
-        cp -v mombf/mombf/src/*.h src/ || echo "No mombf header files found"
+        # Find and identify the mombf directory
+        echo "Looking for mombf directory..."
+        MOMBF_DIR=$(find . -type d -name "mombf" | grep -v "node_modules" | head -1 || echo "")
+        if [ -n "$MOMBF_DIR" ]; then
+          echo "Found mombf directory at: $MOMBF_DIR"
+          
+          # Try to find the correct src directory within mombf
+          MOMBF_SRC=$(find "$MOMBF_DIR" -type d -name "src" | head -1 || echo "")
+          if [ -n "$MOMBF_SRC" ]; then
+            echo "Found mombf src directory at: $MOMBF_SRC"
+            echo "Copying mombf source files to src/"
+            cp -v "$MOMBF_SRC"/*.cpp src/ 2>/dev/null || echo "No mombf cpp files found"
+            cp -v "$MOMBF_SRC"/*.h src/ 2>/dev/null || echo "No mombf header files found"
+          else
+            echo "Could not find mombf src directory"
+          fi
+        else
+          echo "Could not find mombf directory"
+        fi
         
-        # Copy lasso library files to src/
-        echo "Copying lasso files to src/"
-        cp -v lib/lasso/*.cpp src/ || echo "No lasso cpp files found"
-        cp -v lib/lasso/*.h src/ || echo "No lasso header files found"
+        # Find and identify the lasso directory
+        echo "Looking for lasso directory..."
+        LASSO_DIR=$(find . -type d -name "lasso" | grep -v "node_modules" | head -1 || echo "")
+        if [ -n "$LASSO_DIR" ]; then
+          echo "Found lasso directory at: $LASSO_DIR"
+          echo "Copying lasso files to src/"
+          cp -v "$LASSO_DIR"/*.cpp src/ 2>/dev/null || echo "No lasso cpp files found"
+          cp -v "$LASSO_DIR"/*.h src/ 2>/dev/null || echo "No lasso header files found"
+        else
+          echo "Could not find lasso directory"
+        fi
         
         # List all files in src/ to verify
         echo "Files in src/ directory:"
