@@ -5,6 +5,10 @@ on:
     branches:
       - package_v2
 
+# Add permissions to allow the workflow to push to branches
+permissions:
+  contents: write
+
 jobs:
   build-r-package:
     runs-on: ubuntu-latest
@@ -14,6 +18,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0  # Fetch all history for all branches
+        token: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token for authentication
     
     - name: Debug Repository Structure
       run: |
@@ -103,5 +108,10 @@ jobs:
       run: |
         git add .
         git commit -m "Auto-update R package structure [skip ci]"
+        
+        # Use GitHub token for authentication when pushing
+        git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
         git push -f origin r-package-build
         echo "Successfully pushed to r-package-build branch"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
