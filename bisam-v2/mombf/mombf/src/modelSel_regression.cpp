@@ -1597,7 +1597,7 @@ SEXP modelSelectionGibbsCI(SEXP SpostModeini, SEXP SpostModeiniProb, SEXP Sknown
   }
   Rcout << "pars.priorcode: " << *(pars.priorcode) << endl;
 
-  // --- End of Debugging Print Statements --- 
+  // --- End of Debugging Print Statements ---
 
 
   modelSelectionGibbs(postSample, margpp, postMode, postModeProb, postProb, INTEGER(SpriorDelta), INTEGER(SpriorConstr),
@@ -2447,7 +2447,7 @@ double pmompenalty_approx(double *thopt, double **Hinv, double *tau, int thlengt
   return ans;
 }
 
-/* ALA orthogonal approximation to posterior expectation of group MOM penalty. 
+/* ALA orthogonal approximation to posterior expectation of group MOM penalty.
 
    The MOM prior across individual/grouped coefficients g is theta ~ prod_g (theta_g' Sinv theta_g) / phi N(theta; 0, phi Sinv^{-1})
 

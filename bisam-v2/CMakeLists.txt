@@ -67,17 +67,18 @@ file(GLOB_RECURSE MOMBF_SOURCES
         "${MOMBF_SRC_DIR}/*.cpp"
 )
 
-add_executable(bisam_v2 main.cpp
-        controlled-simulation.h
-        mombf-bridge.h
+add_executable(bisam_v2 src/main.cpp
+        src/controlled-simulation.h
+        src/mombf-bridge.h
         ${MOMBF_SOURCES}
         lib/lasso/LassoRegression.h
         lib/lasso/LassoRegression.cpp
         lib/lasso/matrix.cpp
         lib/lasso/matrix.h
-        model-selection-strategy.h
-        exec_timer.h
-        b_ism.h
+        src/model-selection-strategy.h
+        src/exec_timer.h
+        src/b_ism.h
+        src/bisam_rcpp.cpp
 )
 
 # Include all necessary directories
