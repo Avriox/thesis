@@ -50,40 +50,60 @@ jobs:
       run: |
         echo "Preparing R package structure"
         
-        # Ensure src directory exists
+        # Create a temporary directory to store the files we want to keep
+        mkdir -p temp_build
+        
+        # Check for bisam-v2 directory (with hyphen)
+        if [ -d "bisam-v2" ]; then
+          echo "Found bisam-v2 directory - copying contents to temp directory"
+          cp -rv bisam-v2/* temp_build/ || echo "Error copying bisam-v2 files"
+        # Check for bisam_v2 directory (with underscore)  
+        elif [ -d "bisam_v2" ]; then
+          echo "Found bisam_v2 directory - copying contents to temp directory"
+          cp -rv bisam_v2/* temp_build/ || echo "Error copying bisam_v2 files"
+        else
+          echo "ERROR: Neither bisam-v2 nor bisam_v2 directory found!"
+          exit 1
+        fi
+        
+        # Remove everything except .git, .github and temp_build
+        echo "Removing non-package directories"
+        find . -mindepth 1 -maxdepth 1 -not -path "./.git" -not -path "./.github" -not -path "./temp_build" -exec rm -rf {} \;
+        
+        # Move files from temp_build to root (this is a complete copy-out)
+        echo "Moving all files from temp_build to root"
+        cp -rv temp_build/* .
+        
+        # Create src directory if it doesn't exist
         mkdir -p src
         
-        # Find and identify the mombf directory
-        echo "Looking for mombf directory..."
-        MOMBF_DIR=$(find . -type d -name "mombf" | grep -v "node_modules" | head -1 || echo "")
-        if [ -n "$MOMBF_DIR" ]; then
-          echo "Found mombf directory at: $MOMBF_DIR"
-          
-          # Try to find the correct src directory within mombf
-          MOMBF_SRC=$(find "$MOMBF_DIR" -type d -name "src" | head -1 || echo "")
-          if [ -n "$MOMBF_SRC" ]; then
-            echo "Found mombf src directory at: $MOMBF_SRC"
-            echo "Copying mombf source files to src/"
-            cp -v "$MOMBF_SRC"/*.cpp src/ 2>/dev/null || echo "No mombf cpp files found"
-            cp -v "$MOMBF_SRC"/*.h src/ 2>/dev/null || echo "No mombf header files found"
-          else
-            echo "Could not find mombf src directory"
-          fi
-        else
-          echo "Could not find mombf directory"
+        # Copy any lasso library files to src/ if they're not already there
+        if [ -d "lib/lasso" ]; then
+          echo "Copying lasso library files to src/"
+          cp -v lib/lasso/*.cpp src/ 2>/dev/null || echo "No lasso cpp files found"
+          cp -v lib/lasso/*.h src/ 2>/dev/null || echo "No lasso header files found"
         fi
         
-        # Find and identify the lasso directory
-        echo "Looking for lasso directory..."
-        LASSO_DIR=$(find . -type d -name "lasso" | grep -v "node_modules" | head -1 || echo "")
-        if [ -n "$LASSO_DIR" ]; then
-          echo "Found lasso directory at: $LASSO_DIR"
-          echo "Copying lasso files to src/"
-          cp -v "$LASSO_DIR"/*.cpp src/ 2>/dev/null || echo "No lasso cpp files found"
-          cp -v "$LASSO_DIR"/*.h src/ 2>/dev/null || echo "No lasso header files found"
-        else
-          echo "Could not find lasso directory"
+        # Copy any mombf src files to src/ if they're not already there
+        if [ -d "mombf/mombf/src" ]; then
+          echo "Copying mombf source files to src/"
+          cp -v mombf/mombf/src/*.cpp src/ 2>/dev/null || echo "No mombf cpp files found"
+          cp -v mombf/mombf/src/*.h src/ 2>/dev/null || echo "No mombf header files found"
         fi
+        
+        # Remove development directories that shouldn't be in an R package
+        echo "Removing directories not needed in R package"
+        rm -rf lib 2>/dev/null || true
+        rm -rf mombf 2>/dev/null || true
+        rm -rf r-testing-files 2>/dev/null || true
+        rm -rf material 2>/dev/null || true
+        rm -f CMakeLists.txt 2>/dev/null || true
+        rm -f section_header.py 2>/dev/null || true
+        rm -f mombf_*.tar.gz 2>/dev/null || true
+        rm -f bisam_*.tar.gz 2>/dev/null || true
+        
+        # Remove temp directory
+        rm -rf temp_build
         
         # List all files in src/ to verify
         echo "Files in src/ directory:"
@@ -92,6 +112,29 @@ jobs:
         # List all files in root to verify
         echo "Files in root directory:"
         ls -la
+    
+    - name: Check for Modified Files
+      id: check_modified
+      run: |
+        git status --porcelain
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "modified=true" >> $GITHUB_OUTPUT
+        else
+          echo "modified=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Commit and Push Changes
+      if: steps.check_modified.outputs.modified == 'true'
+      run: |
+        git add .
+        git commit -m "Auto-update R package structure [skip ci]"
+        
+        # Use GitHub token for authentication when pushing
+        git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+        git push -f origin r-package-build
+        echo "Successfully pushed to r-package-build branch"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Check for Modified Files
       id: check_modified
