@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.10)
 project(bisam_v2)
 
 set(CMAKE_CXX_STANDARD 17)
+
+add_compile_definitions(DEV)
+
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 
 # Special settings to show full command line
@@ -67,7 +70,7 @@ file(GLOB_RECURSE MOMBF_SOURCES
         "${MOMBF_SRC_DIR}/*.cpp"
 )
 
-add_executable(bisam_v2 src/main.cpp
+add_executable(bisam_v2 main.cpp
         src/controlled-simulation.h
         src/mombf-bridge.h
         ${MOMBF_SOURCES}

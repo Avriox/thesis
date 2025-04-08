@@ -5,10 +5,13 @@
 #ifndef MOMBF_BRIDGE_H
 #define MOMBF_BRIDGE_H
 
+#ifdef DEV
 #include "../lib/lasso/LassoRegression.h"
-
 #include "../mombf/mombf/src/modelSel_regression.h"
-
+#else
+#include "./LassoRegression.h"
+#include "./modelSel_regression.h"
+#endif
 
 namespace MombfBridge {
     /* ---------------------------- countConstraints ---------------------------- */
