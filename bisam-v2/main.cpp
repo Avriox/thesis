@@ -1,11 +1,8 @@
 #include <iostream>
-#include <armadillo>
+#include <RcppArmadillo.h>
 
 #include "src/b_ism.h"
-#include "src/controlled-simulation.h"
-#include "src/model-selection-strategy.h"
 #include "src/mombf-bridge.h"
-#include "src/exec_timer.h"
 
 #define DEBUG_PRINTING // Print some additional debug info. Comment to disable.
 

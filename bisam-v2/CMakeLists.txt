@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.30)
 project(bisam_v2)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -82,6 +82,7 @@ add_executable(bisam_v2 main.cpp
         src/exec_timer.h
         src/b_ism.h
         src/bisam_rcpp.cpp
+        src/b_ism.cpp
 )
 
 # Include all necessary directories
