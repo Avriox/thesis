@@ -1,5 +1,6 @@
 library(devtools)
-# devtools::install_github("Avriox/thesis", ref = "r-package-build")
+remove.packages("bisam")
+devtools::install_github("Avriox/thesis", ref = "r-package-build")
 library(bisam)
 
 # Create the data matrix
@@ -91,3 +92,4 @@ result <- b_ism(
   TRUE          # store_model_visit
 )
 
+print(result$w_store_means)
