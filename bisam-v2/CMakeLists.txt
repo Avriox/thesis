@@ -1,7 +1,10 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.30)
 project(bisam_v2)
 
 set(CMAKE_CXX_STANDARD 17)
+
+add_compile_definitions(DEV)
+
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 
 # Special settings to show full command line
@@ -68,16 +71,18 @@ file(GLOB_RECURSE MOMBF_SOURCES
 )
 
 add_executable(bisam_v2 main.cpp
-        controlled-simulation.h
-        mombf-bridge.h
+        src/controlled-simulation.h
+        src/mombf-bridge.h
         ${MOMBF_SOURCES}
         lib/lasso/LassoRegression.h
         lib/lasso/LassoRegression.cpp
         lib/lasso/matrix.cpp
         lib/lasso/matrix.h
-        model-selection-strategy.h
-        exec_timer.h
-        b_ism.h
+        src/model-selection-strategy.h
+        src/exec_timer.h
+        src/b_ism.h
+        src/bisam_rcpp.cpp
+        src/b_ism.cpp
 )
 
 # Include all necessary directories
